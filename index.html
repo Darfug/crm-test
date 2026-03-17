@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Groupe EDH — CRM Multi-Écoles v3</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;background:#f5f5f2;min-height:100vh;padding:12px}
+:root{
+  --bg-primary:#fff;--bg-secondary:#f5f5f2;--bg-tertiary:#ebebeb;
+  --text-primary:#1a1a1a;--text-secondary:#666;--text-tertiary:#999;
+  --border:rgba(0,0,0,0.12);--border-md:rgba(0,0,0,0.2);
+  --radius-md:8px;--radius-lg:12px;
+  --accent:#7F77DD;--accent-hover:#6d66c8;
+  --red:#E24B4A;
+}
+
+/* ─── LAYOUT ─── */
+.app{display:flex;border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background:var(--bg-primary);min-height:700px;max-width:1440px;margin:0 auto}
+.sidebar{width:230px;background:var(--bg-secondary);border-right:0.5px solid var(--border);padding:14px 0;flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto}
+.sb-logo{padding:0 16px 12px;border-bottom:0.5px solid var(--border);margin-bottom:6px}
+.sb-logo span{font-size:14px;font-weight:700;color:var(--text-primary)}
+.sb-logo small{display:block;font-size:10px;color:var(--text-secondary);margin-top:2px}
+.school-selector{margin:4px 12px 8px}
+.school-selector select{width:100%;padding:6px 8px;border:0.5px solid var(--border-md);border-radius:var(--radius-md);font-size:12px;background:var(--bg-primary);color:var(--text-primary);font-family:inherit;cursor:pointer;font-weight:600}
+.nav-section{font-size:10px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.08em;padding:0 16px 5px;margin-top:8px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:6px 16px;cursor:pointer;font-size:12px;color:var(--text-secondary);border-left:2px solid transparent;transition:all .13s;user-select:none}
+.nav-item:hover{background:var(--bg-primary);color:var(--text-primary)}
+.nav-item.active{background:var(--bg-primary);color:var(--text-primary);border-left-color:var(--accent);font-weight:600}
+.nav-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.nav-count{margin-left:auto;font-size:10px;background:var(--bg-tertiary);padding:1px 6px;border-radius:10px;color:var(--text-secondary)}
+.status-section{margin-top:auto;padding:8px 0 0;border-top:0.5px solid var(--border)}
+.sb-footer{padding:6px 12px;border-top:0.5px solid var(--border);margin-top:8px;display:flex;flex-direction:column;gap:4px}
+.sb-footer button{width:100%;padding:6px;border:0.5px solid var(--border-md);border-radius:var(--radius-md);font-size:11px;background:var(--bg-primary);cursor:pointer;color:var(--text-secondary);font-family:inherit;transition:all .12s;display:flex;align-items:center;justify-content:center;gap:5px}
+.sb-footer button:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* ─── MAIN ─── */
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{padding:10px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap}
+.topbar h2{font-size:14px;font-weight:600;flex:1;color:var(--text-primary);min-width:100px}
+.tabs{display:flex;border:0.5px solid var(--border-md);border-radius:var(--radius-md);overflow:hidden}
+.tab{padding:5px 12px;font-size:11px;cursor:pointer;color:var(--text-secondary);background:var(--bg-secondary);transition:all .13s;border:none;font-family:inherit}
+.tab.active{background:var(--bg-primary);color:var(--text-primary);font-weight:600}
+.search-wrap{position:relative}
+.search-wrap input{padding:6px 10px 6px 26px;border:0.5px solid var(--border-md);border-radius:var(--radius-md);font-size:12px;width:160px;background:var(--bg-secondary);color:var(--text-primary);font-family:inherit}
+.search-icon{position:absolute;left:7px;top:50%;transform:translateY(-50%);opacity:.4;pointer-events:none}
+.btn{padding:5px 10px;border:0.5px solid var(--border-md);border-radius:var(--radius-md);font-size:11px;background:var(--bg-primary);cursor:pointer;color:var(--text-primary);white-space:nowrap;font-family:inherit;transition:background .12s}
+.btn:hover{background:var(--bg-secondary)}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-primary:hover{background:var(--accent-hover)}
+.btn-danger{border-color:#F0997B;color:#993C1D}
+.btn-sm{padding:3px 7px;font-size:10px}
+.content{flex:1;overflow-y:auto;padding:12px 16px}
+.stats-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:12px}
+.stat-card{background:var(--bg-secondary);border-radius:var(--radius-md);padding:8px 10px}
+.stat-label{font-size:10px;color:var(--text-secondary);margin-bottom:2px}
+.stat-val{font-size:18px;font-weight:700;color:var(--text-primary)}
+
+/* ─── TABLE ─── */
+.table-wrap{border:0.5px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
+th{background:var(--bg-secondary);padding:7px 8px;text-align:left;font-weight:600;font-size:10px;color:var(--text-secondary);border-bottom:0.5px solid var(--border)}
+td{padding:7px 8px;border-bottom:0.5px solid var(--border);color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg-secondary);cursor:pointer}
+
+/* ─── TAGS ─── */
+.badge{display:inline-flex;align-items:center;padding:2px 6px;border-radius:10px;font-size:9px;font-weight:600}
+.ftag{display:inline-flex;padding:2px 6px;border-radius:8px;font-size:9px;font-weight:600}
+.school-tag{display:inline-flex;padding:1px 5px;border-radius:6px;font-size:8px;font-weight:600;background:#EEEDFE;color:#3C3489;margin:1px}
+.school-tags-cell{display:flex;flex-wrap:wrap;gap:1px;overflow:hidden;max-height:20px}
+.act-btn{padding:2px 7px;border:0.5px solid var(--border-md);border-radius:5px;font-size:10px;cursor:pointer;background:none;color:var(--text-secondary);font-family:inherit}
+.act-del{border-color:#F0997B;color:#993C1D}
+
+/* ─── MAP ─── */
+.view-map{display:none;flex:1;flex-direction:column}.view-map.active{display:flex}
+.view-list{display:none;flex:1;flex-direction:column}.view-list.active{display:flex;flex-direction:column}
+#map{width:100%;flex:1;min-height:500px}
+.map-legend{display:flex;gap:10px;padding:6px 12px;border-top:0.5px solid var(--border);background:var(--bg-primary);flex-wrap:wrap}
+.leg-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text-secondary)}
+.leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* ─── MODALS ─── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:9999;align-items:flex-start;justify-content:center;padding-top:30px;overflow-y:auto}
+.modal-bg.open{display:flex}
+.modal{background:var(--bg-primary);border-radius:var(--radius-lg);border:0.5px solid var(--border);width:560px;max-width:96vw;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.15);margin-bottom:30px}
+.modal-header{padding:12px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg-primary);z-index:1}
+.modal-header h3{font-size:14px;font-weight:600;color:var(--text-primary)}
+.modal-close{cursor:pointer;font-size:20px;color:var(--text-secondary);background:none;border:none;line-height:1}
+.modal-body{padding:14px 16px}
+.fg{margin-bottom:10px}
+.fl{font-size:10px;font-weight:600;color:var(--text-secondary);margin-bottom:3px;display:block}
+.fg input,.fg select,.fg textarea{width:100%;padding:6px 8px;border:0.5px solid var(--border-md);border-radius:var(--radius-md);font-size:12px;background:var(--bg-primary);color:var(--text-primary);font-family:inherit}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--accent)}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.modal-footer{padding:10px 16px;border-top:0.5px solid var(--border);display:flex;justify-content:flex-end;gap:6px;align-items:center;position:sticky;bottom:0;background:var(--bg-primary)}
+
+/* ─── MULTI-SELECT CHECKBOXES ─── */
+.checkbox-grid{display:flex;flex-wrap:wrap;gap:4px;padding:6px 0}
+.checkbox-grid label{display:flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border:0.5px solid var(--border);border-radius:6px;cursor:pointer;transition:all .12s;background:var(--bg-primary)}
+.checkbox-grid label:hover{border-color:var(--accent)}
+.checkbox-grid label.checked{background:#EEEDFE;border-color:#AFA9EC;color:#3C3489;font-weight:600}
+.checkbox-grid input{display:none}
+
+/* ─── DETAIL VIEW ─── */
+.detail-row{display:flex;gap:6px;padding:4px 0;border-bottom:0.5px solid var(--border)}
+.detail-key{font-size:10px;color:var(--text-secondary);width:110px;flex-shrink:0;padding-top:1px}
+.detail-val{font-size:12px;color:var(--text-primary);flex:1}
+.note-box{background:var(--bg-secondary);border-radius:var(--radius-md);padding:8px 10px;font-size:11px;color:var(--text-secondary);line-height:1.5;margin-top:8px}
+
+/* ─── EXCHANGE LOG ─── */
+.exchange-section{margin-top:12px;border-top:0.5px solid var(--border);padding-top:10px}
+.exchange-section h4{font-size:12px;font-weight:600;margin-bottom:8px;color:var(--text-primary);display:flex;align-items:center;gap:6px}
+.exchange-item{background:var(--bg-secondary);border-radius:var(--radius-md);padding:8px 10px;margin-bottom:6px;position:relative}
+.exchange-item .ex-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.exchange-item .ex-who{font-size:10px;font-weight:600;color:var(--accent)}
+.exchange-item .ex-date{font-size:9px;color:var(--text-tertiary)}
+.exchange-item .ex-text{font-size:11px;color:var(--text-secondary);line-height:1.5}
+.exchange-item .ex-del{position:absolute;top:6px;right:8px;font-size:10px;cursor:pointer;color:var(--text-tertiary);background:none;border:none}
+.exchange-item .ex-del:hover{color:var(--red)}
+.exchange-add{display:flex;gap:6px;align-items:flex-start;margin-top:6px}
+.exchange-add textarea{flex:1;padding:6px 8px;border:0.5px solid var(--border-md);border-radius:var(--radius-md);font-size:11px;font-family:inherit;min-height:48px;resize:vertical;color:var(--text-primary);background:var(--bg-primary)}
+.exchange-add select{width:120px;padding:6px;border:0.5px solid var(--border-md);border-radius:var(--radius-md);font-size:11px;font-family:inherit;flex-shrink:0}
+
+/* ─── BANNERS & MISC ─── */
+.sp-banner{border-radius:var(--radius-md);padding:8px 12px;margin-bottom:10px;font-size:11px;display:flex;align-items:center;gap:6px;line-height:1.5}
+.sp-banner.demo{background:#FAEEDA;border:0.5px solid #FAC775;color:#412402}
+.sp-banner.error{background:#FCEBEB;border:0.5px solid #F09595;color:#501313}
+.sp-banner.success{background:#EAF3DE;border:0.5px solid #97C459;color:#173404}
+.sp-banner.info{background:#E6F1FB;border:0.5px solid #85B7EB;color:#0C447C}
+.loading-overlay{position:absolute;inset:0;background:rgba(255,255,255,.75);display:flex;align-items:center;justify-content:center;z-index:10;border-radius:var(--radius-lg)}
+.spinner{width:22px;height:22px;border:2px solid var(--border-md);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{padding:30px;text-align:center;color:var(--text-secondary);font-size:12px}
+
+/* ─── ADMIN ─── */
+.admin-tabs{display:flex;border-bottom:0.5px solid var(--border);gap:0;overflow-x:auto}
+.admin-tab{padding:8px 12px;font-size:11px;cursor:pointer;color:var(--text-secondary);border:none;background:none;font-family:inherit;border-bottom:2px solid transparent;white-space:nowrap}
+.admin-tab.active{color:var(--text-primary);font-weight:600;border-bottom-color:var(--accent)}
+.admin-section{display:none;padding:14px 16px}
+.admin-section.active{display:block}
+.config-card{background:var(--bg-secondary);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:8px}
+.config-card h4{font-size:12px;font-weight:600;margin-bottom:4px}
+.config-card p{font-size:11px;color:var(--text-secondary);line-height:1.5}
+.item-row{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--border)}
+.item-row:last-child{border-bottom:none}
+.item-row .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.item-row span{flex:1;font-size:12px}
+.item-row .code{font-size:10px;color:var(--text-tertiary);font-family:monospace;flex:none}
+.color-input{width:28px;height:20px;border:none;padding:0;cursor:pointer;border-radius:4px;background:none}
+.inline-add{display:flex;gap:6px;margin-top:8px;align-items:center;flex-wrap:wrap}
+.inline-add input{flex:1;min-width:70px;padding:5px 8px;border:0.5px solid var(--border-md);border-radius:var(--radius-md);font-size:12px;font-family:inherit}
+.col-vis-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--border)}
+.col-vis-row label{flex:1;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px}
+</style>
+</head>
+<body>
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   CONFIG
+   ═══════════════════════════════════════════════════════════════════ */
+const CONFIG = {
+  // Mode : 'demo' = données locales, 'gsheet' = Google Sheets partagé
+  mode: 'demo',
+  // ── Google Sheets ──
+  // ID du Google Sheet (la partie entre /d/ et /edit dans l'URL)
+  // Ex: https://docs.google.com/spreadsheets/d/ABC123/edit → ID = ABC123
+  sheetId: '',
+  // URL du Google Apps Script déployé en Web App (pour l'écriture)
+  // Voir le guide pour créer ce script en 2 minutes
+  scriptUrl: '',
+  // Clé API Google (gratuite, pour la lecture)
+  apiKey: ''
+};
+
+/* ═══════════════════════════════════════════════════════════════════
+   SCHOOLS
+   ═══════════════════════════════════════════════════════════════════ */
+const SCHOOLS_CONFIG = {
+  brassart:{name:"Brassart",subtitle:"Métiers de la création",filieres:{
+    da:{label:"Direction Artistique",bg:"#E6F1FB",color:"#185FA5",dot:"#378ADD"},
+    graphisme:{label:"Graphisme Éco Conception",bg:"#E1F5EE",color:"#0F6E56",dot:"#1D9E75"},
+    anim3d:{label:"Animation 3D & Immersion",bg:"#FAEEDA",color:"#854F0B",dot:"#EF9F27"},
+    artsGraphiques:{label:"Arts Graphiques Illustration",bg:"#FAECE7",color:"#993C1D",dot:"#D85A30"},
+    gamedesign:{label:"Game Design / Jeux Vidéo",bg:"#EEEDFE",color:"#3C3489",dot:"#7F77DD"},
+    audiovisuel:{label:"Audiovisuel",bg:"#FBEAF0",color:"#993556",dot:"#D4537E"}}},
+  efap:{name:"EFAP",subtitle:"Communication & marketing",filieres:{
+    com:{label:"Communication",bg:"#EEEDFE",color:"#3C3489",dot:"#7F77DD"},
+    mktdigital:{label:"Marketing Digital",bg:"#E6F1FB",color:"#185FA5",dot:"#378ADD"},
+    rp:{label:"Relations Publiques",bg:"#E1F5EE",color:"#0F6E56",dot:"#1D9E75"},
+    influence:{label:"Influence & Social Media",bg:"#FBEAF0",color:"#993556",dot:"#D4537E"}}},
+  icart:{name:"ICART",subtitle:"Culture & marché de l'art",filieres:{
+    marchart:{label:"Marché de l'Art",bg:"#EEEDFE",color:"#3C3489",dot:"#7F77DD"},
+    mgmtcult:{label:"Management Culturel",bg:"#E1F5EE",color:"#0F6E56",dot:"#1D9E75"},
+    mediation:{label:"Médiation Culturelle",bg:"#FAEEDA",color:"#854F0B",dot:"#EF9F27"}}},
+  cread:{name:"CREAD",subtitle:"Architecture intérieure",filieres:{
+    archiint:{label:"Architecture Intérieure",bg:"#FAECE7",color:"#993C1D",dot:"#D85A30"},
+    designglobal:{label:"Design Global",bg:"#E6F1FB",color:"#185FA5",dot:"#378ADD"}}},
+  efj:{name:"EFJ",subtitle:"Nouveau journalisme",filieres:{
+    journalisme:{label:"Journalisme",bg:"#E6F1FB",color:"#185FA5",dot:"#378ADD"},
+    webmedia:{label:"Web & Médias",bg:"#E1F5EE",color:"#0F6E56",dot:"#1D9E75"}}},
+  mopa:{name:"MoPA",subtitle:"Animation 3D",filieres:{
+    anim3d:{label:"Animation 3D",bg:"#FAEEDA",color:"#854F0B",dot:"#EF9F27"},
+    stopmotion:{label:"Stop Motion",bg:"#FAECE7",color:"#993C1D",dot:"#D85A30"}}},
+  esec:{name:"ÉSEC",subtitle:"Cinéma & audiovisuel",filieres:{
+    realisation:{label:"Réalisation",bg:"#FCEBEB",color:"#A32D2D",dot:"#E24B4A"},
+    production:{label:"Production",bg:"#E6F1FB",color:"#185FA5",dot:"#378ADD"}}},
+  ecolebleue:{name:"École Bleue",subtitle:"Archi intérieure & design",filieres:{archiint:{label:"Architecture Intérieure",bg:"#E6F1FB",color:"#185FA5",dot:"#378ADD"}}},
+  "3wa":{name:"3W Academy",subtitle:"Dev web & mobile",filieres:{devweb:{label:"Développement Web",bg:"#FBEAF0",color:"#993556",dot:"#D4537E"},fullstack:{label:"Fullstack JS",bg:"#E1F5EE",color:"#0F6E56",dot:"#1D9E75"}}},
+  ifaparis:{name:"IFA Paris",subtitle:"Mode",filieres:{fashion:{label:"Fashion Design",bg:"#FBEAF0",color:"#993556",dot:"#D4537E"},luxe:{label:"Luxury Brand Mgmt",bg:"#EEEDFE",color:"#3C3489",dot:"#7F77DD"}}},
+  cesine:{name:"CESINE",subtitle:"Design & marketing",filieres:{design:{label:"Design",bg:"#E6F1FB",color:"#185FA5",dot:"#378ADD"}}},
+  creanavarra:{name:"CreaNAVARRA",subtitle:"Arts numériques",filieres:{graphisme:{label:"Design Graphique",bg:"#E6F1FB",color:"#185FA5",dot:"#378ADD"}}},
+  miami:{name:"Miami Ad School",subtitle:"Création publicitaire",filieres:{creative:{label:"Creative",bg:"#E1F5EE",color:"#0F6E56",dot:"#1D9E75"}}},
+  gnomon:{name:"Gnomon",subtitle:"VFX & animation",filieres:{vfx:{label:"VFX",bg:"#FAECE7",color:"#993C1D",dot:"#D85A30"}}},
+  artemis:{name:"Artemis Academie",subtitle:"Tendances & stylisme",filieres:{trends:{label:"Tendances",bg:"#FBEAF0",color:"#993556",dot:"#D4537E"}}}
+};
+
+let STATUSES = {
+  partenaire:{label:"Partenaire",color:"#1D9E75",bg:"#E1F5EE",text:"#0F6E56"},
+  chaud:{label:"Chaud",color:"#D85A30",bg:"#FAECE7",text:"#993C1D"},
+  tiede:{label:"Tiède",color:"#EF9F27",bg:"#FAEEDA",text:"#854F0B"},
+  froid:{label:"Froid",color:"#378ADD",bg:"#E6F1FB",text:"#185FA5"}
+};
+
+let TABLE_COLUMNS = [
+  {key:"nom",label:"Entreprise",width:"16%",visible:true,system:true},
+  {key:"ecoles",label:"Écoles",width:"14%",visible:true,system:true},
+  {key:"filiere",label:"Filière",width:"12%",visible:true,system:true},
+  {key:"statut",label:"Statut",width:"8%",visible:true,system:true},
+  {key:"contact",label:"Contact",width:"11%",visible:true,system:true},
+  {key:"ville",label:"Ville",width:"9%",visible:true,system:true},
+  {key:"offre",label:"Offre",width:"9%",visible:true,system:true},
+  {key:"obtenu_par",label:"Obtenu par",width:"9%",visible:true,system:true},
+  {key:"dernier_echange",label:"Dern. échange",width:"9%",visible:true,system:true},
+  {key:"_actions",label:"",width:"8%",visible:true,system:true}
+];
+
+/* ═══════════════════════════════════════════════════════════════════
+   TEAM MEMBERS — alimenté par l'onglet Excel "Equipe" ou en local
+   ═══════════════════════════════════════════════════════════════════ */
+let TEAM_MEMBERS = [
+  {nom:"Marie Dupont",ecole:"brassart",role:"Relations entreprises"},
+  {nom:"Thomas Martin",ecole:"brassart",role:"Responsable stages"},
+  {nom:"Léa Bernard",ecole:"efap",role:"Relations entreprises"},
+  {nom:"Julien Faure",ecole:"efap",role:"Directeur pédagogique"},
+  {nom:"Sophie Lambert",ecole:"icart",role:"Relations entreprises"},
+  {nom:"Clara Roux",ecole:"cread",role:"Responsable alternance"},
+  {nom:"Antoine Duval",ecole:"mopa",role:"Relations entreprises"},
+  {nom:"Nathalie Simon",ecole:"efj",role:"Relations entreprises"},
+];
+
+/* ═══════════════════════════════════════════════════════════════════
+   DEMO DATA — structure unifiée (une entreprise = tags multi-écoles)
+   ═══════════════════════════════════════════════════════════════════ */
+const DEMO_COMPANIES = [
+  {id:1,nom:"Ubisoft",ville:"Montpellier",lat:43.6117,lng:3.8767,filiere:"gamedesign",statut:"partenaire",contact:"Sarah Martin",email:"smartin@ubisoft.com",tel:"+33 4 67 00 00 01",offre:"Stage + Alternance",web:"https://ubisoft.com",notes:"Partenaire historique.",ecoles:["brassart","mopa"],obtenu_par:"Marie Dupont",dernier_echange:"Thomas Martin",exchanges:[{id:"e1",date:"2026-01-15",auteur:"Marie Dupont",resume:"Premier contact au salon du jeu vidéo. Très intéressés par nos profils game design et animation 3D."},{id:"e2",date:"2026-02-20",auteur:"Thomas Martin",resume:"Visite du studio Montpellier. Convention de stage signée pour 4 étudiants en 2026."}]},
+  {id:2,nom:"Ankama",ville:"Roubaix",lat:50.6942,lng:3.1746,filiere:"gamedesign",statut:"chaud",contact:"Luc Bernard",email:"lbernard@ankama.com",tel:"+33 3 20 00 00 01",offre:"Stage",web:"https://ankama.com",notes:"Profils illustration & game art.",ecoles:["brassart"],obtenu_par:"Marie Dupont",dernier_echange:"Marie Dupont",exchanges:[{id:"e3",date:"2026-03-01",auteur:"Marie Dupont",resume:"Appel avec le RH, intéressés par des illustrateurs 2D pour Wakfu."}]},
+  {id:3,nom:"Publicis",ville:"Paris",lat:48.8738,lng:2.3285,filiere:"da",statut:"partenaire",contact:"Marie Leroy",email:"marie@publicis.fr",tel:"+33 1 44 43 70 00",offre:"Alternance",web:"https://publicis.fr",notes:"Direction artistique et communication.",ecoles:["brassart","efap"],obtenu_par:"Léa Bernard",dernier_echange:"Léa Bernard",exchanges:[{id:"e4",date:"2025-11-10",auteur:"Léa Bernard",resume:"Partenariat double Brassart + EFAP pour des profils DA et communication digitale."}]},
+  {id:4,nom:"MacGuff",ville:"Paris",lat:48.87,lng:2.34,filiere:"anim3d",statut:"chaud",contact:"Nicolas Blanc",email:"n.blanc@macguff.fr",tel:"+33 1 45 00 00 01",offre:"Stage",web:"https://macguff.fr",notes:"Animation 3D.",ecoles:["brassart","mopa"],obtenu_par:"Antoine Duval",dernier_echange:"Antoine Duval",exchanges:[]},
+  {id:5,nom:"Havas",ville:"Paris",lat:48.8866,lng:2.2922,filiere:"com",statut:"partenaire",contact:"Julien Faure",email:"j.faure@havas.com",tel:"+33 1 58 47 90 00",offre:"Alternance",web:"https://havas.com",notes:"Communication globale.",ecoles:["efap","brassart"],obtenu_par:"Julien Faure",dernier_echange:"Léa Bernard",exchanges:[{id:"e5",date:"2026-02-05",auteur:"Léa Bernard",resume:"Renouvellement de la convention annuelle. 6 places alternance confirmées."}]},
+  {id:6,nom:"Christie's France",ville:"Paris",lat:48.870,lng:2.316,filiere:"marchart",statut:"partenaire",contact:"Élise Moreau",email:"e.moreau@christies.com",tel:"+33 1 40 76 85 85",offre:"Stage",web:"https://christies.com",notes:"Département ventes.",ecoles:["icart"],obtenu_par:"Sophie Lambert",dernier_echange:"Sophie Lambert",exchanges:[]},
+  {id:7,nom:"Sarah Lavoine",ville:"Paris",lat:48.857,lng:2.337,filiere:"archiint",statut:"partenaire",contact:"Clara Roux",email:"c.roux@sarahlavoine.com",tel:"+33 1 42 22 00 01",offre:"Alternance",web:"https://sarahlavoine.com",notes:"Archi intérieure haut de gamme.",ecoles:["cread","ecolebleue"],obtenu_par:"Clara Roux",dernier_echange:"Clara Roux",exchanges:[]},
+  {id:8,nom:"Mikros Animation",ville:"Paris",lat:48.855,lng:2.345,filiere:"anim3d",statut:"partenaire",contact:"Julie Renard",email:"j.renard@mikros.com",tel:"+33 1 53 00 00 01",offre:"Alternance",web:"https://mikros.com",notes:"Animation 3D long-métrage.",ecoles:["brassart","mopa","gnomon"],obtenu_par:"Antoine Duval",dernier_echange:"Marie Dupont",exchanges:[{id:"e6",date:"2026-01-28",auteur:"Marie Dupont",resume:"Réunion trilat Brassart/MoPA/Gnomon. Mikros veut élargir à 10 stagiaires/an."}]},
+  {id:9,nom:"Studios de Bry",ville:"Bry-sur-Marne",lat:48.837,lng:2.525,filiere:"audiovisuel",statut:"chaud",contact:"Thomas Garcia",email:"tgarcia@studiosdebry.com",tel:"+33 1 48 82 00 00",offre:"Stage + Alternance",web:"",notes:"Montage, postproduction.",ecoles:["brassart","esec"],obtenu_par:"Thomas Martin",dernier_echange:"Thomas Martin",exchanges:[]},
+  {id:10,nom:"Webedia",ville:"Levallois",lat:48.893,lng:2.283,filiere:"influence",statut:"chaud",contact:"Léa Martin",email:"lea@webedia.com",tel:"+33 1 47 58 00 00",offre:"Stage",web:"https://webedia.com",notes:"Influence et social media.",ecoles:["efap"],obtenu_par:"Léa Bernard",dernier_echange:"Léa Bernard",exchanges:[]},
+];
+
+/* ═══════════════════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════════════════ */
+let companies = [];
+let nextLocalId = 9000;
+let nextExchangeId = 9000;
+let editingId = null, detailId = null;
+let currentSchoolFilter = 'all'; // filter by school tag
+let curFiliere = 'all', curStatus = null, curTab = 'list';
+let mapInstance = null, mapMarkers = [];
+
+function FL() {
+  if (currentSchoolFilter === 'all') {
+    // Merge all school filieres
+    let merged = {};
+    Object.values(SCHOOLS_CONFIG).forEach(s => Object.assign(merged, s.filieres));
+    return merged;
+  }
+  return SCHOOLS_CONFIG[currentSchoolFilter]?.filieres || {};
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════════════════════════ */
+function init() {
+  try {
+    const saved = localStorage.getItem('edh_crm_v3');
+    if (saved) {
+      const cfg = JSON.parse(saved);
+      if (cfg.companies) companies = cfg.companies;
+      if (cfg.team) TEAM_MEMBERS = cfg.team;
+      if (cfg.columns) TABLE_COLUMNS = cfg.columns;
+      if (cfg.statuses) STATUSES = cfg.statuses;
+      if (cfg.schools) Object.keys(cfg.schools).forEach(k => { if (!SCHOOLS_CONFIG[k]) SCHOOLS_CONFIG[k] = cfg.schools[k]; else Object.assign(SCHOOLS_CONFIG[k], cfg.schools[k]); });
+      if (cfg.gsConfig) { Object.assign(CONFIG, cfg.gsConfig); }
+    } else {
+      companies = DEMO_COMPANIES.map(c => ({...c, exchanges: (c.exchanges||[]).map(e => ({...e}))}));
+    }
+  } catch(e) { companies = DEMO_COMPANIES.map(c => ({...c, exchanges: (c.exchanges||[]).map(e => ({...e}))})); }
+  
+  buildSchoolSelector();
+  switchSchool('all');
+  
+  if (CONFIG.mode === 'gsheet' && CONFIG.sheetId && CONFIG.apiKey) {
+    syncData();
+  } else {
+    showBanner('demo','&#9888; Mode démo — données locales. Allez dans &#9881; Administration > Connexion pour activer Google Sheets.');
+  }
+}
+
+function saveConfig() {
+  try { localStorage.setItem('edh_crm_v3', JSON.stringify({companies, team:TEAM_MEMBERS, columns:TABLE_COLUMNS, statuses:STATUSES, schools:SCHOOLS_CONFIG, gsConfig:{mode:CONFIG.mode, sheetId:CONFIG.sheetId, scriptUrl:CONFIG.scriptUrl, apiKey:CONFIG.apiKey}})); } catch(e) {}
+}
+
+function buildSchoolSelector() {
+  const opts = '<option value="all">Toutes les écoles</option>' + Object.entries(SCHOOLS_CONFIG).map(([k,v]) => `<option value="${k}">${v.name}</option>`).join('');
+  document.getElementById('school-select').innerHTML = opts;
+}
+
+function switchSchool(code) {
+  currentSchoolFilter = code;
+  document.getElementById('school-select').value = code;
+  curFiliere = 'all'; curStatus = null;
+  
+  // Build filiere nav
+  const filieres = FL();
+  document.getElementById('filiere-nav').innerHTML =
+    `<div class="nav-item active" data-f="all" onclick="setFiliere('all')"><span class="nav-dot" style="background:var(--accent)"></span>Toutes<span class="nav-count" id="cnt-all">0</span></div>` +
+    Object.entries(filieres).map(([k,v]) => `<div class="nav-item" data-f="${k}" onclick="setFiliere('${k}')"><span class="nav-dot" style="background:${v.dot}"></span>${v.label}<span class="nav-count" id="cnt-${k}">0</span></div>`).join('');
+  
+  document.querySelectorAll('.nav-item[data-s]').forEach(el => el.classList.remove('active'));
+  const title = code === 'all' ? 'Toutes les entreprises' : 'Entreprises — ' + SCHOOLS_CONFIG[code].name;
+  document.getElementById('view-title').textContent = title;
+  renderAll();
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   FILTER & RENDER
+   ═══════════════════════════════════════════════════════════════════ */
+function getFiltered() {
+  const q = (document.getElementById('search-input')?.value || '').toLowerCase();
+  return companies.filter(c => {
+    // Filter by school tag
+    if (currentSchoolFilter !== 'all' && !(c.ecoles || []).includes(currentSchoolFilter)) return false;
+    if (curFiliere !== 'all' && c.filiere !== curFiliere) return false;
+    if (curStatus && c.statut !== curStatus) return false;
+    if (q && !c.nom.toLowerCase().includes(q) && !c.ville.toLowerCase().includes(q) && !(c.contact||'').toLowerCase().includes(q) && !(c.obtenu_par||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function renderAll() { renderStats(); renderTableHead(); renderTable(); if(curTab==='map')renderMapMarkers(); }
+
+function renderStats() {
+  const a = getBaseSet();
+  document.getElementById('stats-row').innerHTML = [
+    {l:'Total',v:a.length},{l:'Partenaires',v:a.filter(c=>c.statut==='partenaire').length},
+    {l:'Chauds',v:a.filter(c=>c.statut==='chaud').length},{l:'Tièdes',v:a.filter(c=>c.statut==='tiede').length},
+    {l:'Villes',v:[...new Set(a.map(c=>c.ville))].length}
+  ].map(s=>`<div class="stat-card"><div class="stat-label">${s.l}</div><div class="stat-val">${s.v}</div></div>`).join('');
+  
+  const el0 = document.getElementById('cnt-all'); if(el0) el0.textContent = a.length;
+  Object.keys(FL()).forEach(k => { const el=document.getElementById('cnt-'+k); if(el) el.textContent = a.filter(c=>c.filiere===k).length; });
+}
+
+function getBaseSet() {
+  // Companies filtered only by school (not by filiere/status/search)
+  return currentSchoolFilter === 'all' ? companies : companies.filter(c => (c.ecoles||[]).includes(currentSchoolFilter));
+}
+
+function renderTableHead() {
+  document.getElementById('table-head').innerHTML = TABLE_COLUMNS.filter(c=>c.visible).map(c=>`<th style="width:${c.width}">${c.label}</th>`).join('');
+}
+
+function renderTable() {
+  const rows = getFiltered(), b = document.getElementById('table-body'), vis = TABLE_COLUMNS.filter(c=>c.visible), fl = FL();
+  if(!rows.length) { b.innerHTML = `<tr><td colspan="${vis.length}"><div class="empty-state">Aucune entreprise trouvée</div></td></tr>`; return; }
+  b.innerHTML = rows.map(c => {
+    const cells = vis.map(col => {
+      if(col.key==='nom') return `<td style="font-weight:600">${c.nom}</td>`;
+      if(col.key==='ecoles') return `<td><div class="school-tags-cell">${(c.ecoles||[]).map(e => `<span class="school-tag">${SCHOOLS_CONFIG[e]?.name||e}</span>`).join('')}</div></td>`;
+      if(col.key==='filiere'){const f=fl[c.filiere]; return f?`<td><span class="ftag" style="background:${f.bg};color:${f.color}">${f.label}</span></td>`:`<td>${c.filiere||'—'}</td>`;}
+      if(col.key==='statut'){const s=STATUSES[c.statut]; return s?`<td><span class="badge" style="background:${s.bg};color:${s.text}">${s.label}</span></td>`:`<td>${c.statut}</td>`;}
+      if(col.key==='obtenu_par') return `<td style="font-size:10px;color:var(--text-secondary)">${c.obtenu_par||'—'}</td>`;
+      if(col.key==='dernier_echange') return `<td style="font-size:10px;color:var(--text-secondary)">${c.dernier_echange||'—'}</td>`;
+      if(col.key==='_actions') return `<td onclick="event.stopPropagation()"><div style="display:flex;gap:3px"><button class="act-btn" onclick="openEditModal(${c.id})">&#9998;</button><button class="act-btn act-del" onclick="confirmDelete(${c.id})">&#10005;</button></div></td>`;
+      return `<td>${c[col.key]||'—'}</td>`;
+    }).join('');
+    return `<tr onclick="showDetail(${c.id})">${cells}</tr>`;
+  }).join('');
+}
+
+/* ═══ MAP ═══ */
+function makeIcon(st){const c=STATUSES[st]?.color||'#999';return L.divIcon({html:`<svg xmlns='http://www.w3.org/2000/svg' width='24' height='32' viewBox='0 0 26 34'><path d='M13 0C5.82 0 0 5.82 0 13c0 9.75 13 21 13 21S26 22.75 26 13C26 5.82 20.18 0 13 0z' fill='${c}'/><circle cx='13' cy='13' r='5' fill='white' opacity='.9'/></svg>`,className:'',iconSize:[24,32],iconAnchor:[12,32],popupAnchor:[0,-34]});}
+function buildPopup(c){const fl=FL(),f=fl[c.filiere],s=STATUSES[c.statut];return `<div style="font-family:sans-serif;min-width:140px"><div style="font-size:12px;font-weight:700;margin-bottom:3px">${c.nom}</div><div style="font-size:10px;color:#666;margin-bottom:2px">${c.ville} — ${c.contact||''}</div><div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:3px">${(c.ecoles||[]).map(e=>`<span style="padding:1px 4px;border-radius:4px;font-size:8px;font-weight:700;background:#EEEDFE;color:#3C3489">${SCHOOLS_CONFIG[e]?.name||e}</span>`).join('')}</div><div style="display:flex;gap:3px">${f?`<span style="padding:1px 5px;border-radius:6px;font-size:9px;font-weight:700;background:${f.bg};color:${f.color}">${f.label}</span>`:''} ${s?`<span style="padding:1px 5px;border-radius:6px;font-size:9px;font-weight:700;background:${s.bg};color:${s.text}">${s.label}</span>`:''}</div></div>`;}
+function renderMapMarkers(){if(!mapInstance)return;mapMarkers.forEach(m=>mapInstance.removeLayer(m));mapMarkers=[];const f=getFiltered().filter(c=>c.lat&&c.lng);f.forEach(c=>{mapMarkers.push(L.marker([c.lat,c.lng],{icon:makeIcon(c.statut)}).addTo(mapInstance).bindPopup(buildPopup(c),{maxWidth:220}));});if(f.length)mapInstance.fitBounds(f.map(c=>[c.lat,c.lng]),{padding:[40,40],maxZoom:12});}
+function initMap(){if(mapInstance)return;mapInstance=L.map('map').setView([46.5,2.5],5);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:18}).addTo(mapInstance);renderMapMarkers();}
+
+/* ═══ NAV ═══ */
+function switchTab(tab){curTab=tab;document.getElementById('view-list').classList.toggle('active',tab==='list');document.getElementById('view-map').classList.toggle('active',tab==='map');document.getElementById('tab-list').classList.toggle('active',tab==='list');document.getElementById('tab-map').classList.toggle('active',tab==='map');if(tab==='map')setTimeout(()=>{initMap();mapInstance&&mapInstance.invalidateSize();renderMapMarkers();},50);}
+function setFiliere(f){curFiliere=f;curStatus=null;document.querySelectorAll('.nav-item[data-f]').forEach(el=>el.classList.toggle('active',el.dataset.f===f));document.querySelectorAll('.nav-item[data-s]').forEach(el=>el.classList.remove('active'));renderAll();}
+function setStatus(s){curStatus=curStatus===s?null:s;curFiliere='all';document.querySelectorAll('.nav-item[data-f]').forEach(el=>el.classList.toggle('active',el.dataset.f==='all'));document.querySelectorAll('.nav-item[data-s]').forEach(el=>el.classList.toggle('active',el.dataset.s===s&&curStatus===s));renderAll();}
+function onSearch(){renderAll();}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TEAM MEMBER DROPDOWN BUILDER
+   ═══════════════════════════════════════════════════════════════════ */
+function teamOptions(selected) {
+  return '<option value="">— Aucun —</option>' + TEAM_MEMBERS.map(m =>
+    `<option value="${m.nom}" ${m.nom===selected?'selected':''}>${m.nom} (${SCHOOLS_CONFIG[m.ecole]?.name||m.ecole})</option>`
+  ).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SCHOOL CHECKBOX BUILDER
+   ═══════════════════════════════════════════════════════════════════ */
+function schoolCheckboxes(selected) {
+  const sel = selected || [];
+  return Object.entries(SCHOOLS_CONFIG).map(([k,v]) =>
+    `<label class="${sel.includes(k)?'checked':''}" onclick="this.classList.toggle('checked')"><input type="checkbox" name="f-ecoles" value="${k}" ${sel.includes(k)?'checked':''}>${v.name}</label>`
+  ).join('');
+}
+
+function getCheckedSchools() {
+  return [...document.querySelectorAll('input[name="f-ecoles"]:checked')].map(cb => cb.value);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CRUD
+   ═══════════════════════════════════════════════════════════════════ */
+function openAddModal() {
+  editingId = null;
+  document.getElementById('modal-title').textContent = 'Ajouter une entreprise';
+  document.getElementById('btn-del-form').style.display = 'none';
+  ['nom','ville','contact','email','tel','web','notes'].forEach(f => document.getElementById('f-'+f).value = '');
+  document.getElementById('f-lat').value=''; document.getElementById('f-lng').value='';
+  // Build filiere from all schools
+  const allFl = {}; Object.values(SCHOOLS_CONFIG).forEach(s => Object.assign(allFl, s.filieres));
+  document.getElementById('f-filiere').innerHTML = Object.entries(allFl).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
+  document.getElementById('f-filiere').value = Object.keys(allFl)[0]||'';
+  document.getElementById('f-statut').value='froid';
+  document.getElementById('f-offre').value='';
+  document.getElementById('f-obtenu').innerHTML = teamOptions('');
+  document.getElementById('f-ecoles-grid').innerHTML = schoolCheckboxes(currentSchoolFilter!=='all'?[currentSchoolFilter]:[]);
+  document.getElementById('form-modal').classList.add('open');
+}
+
+function openEditModal(id) {
+  const c = companies.find(x=>x.id===id); if(!c) return;
+  editingId = id;
+  document.getElementById('modal-title').textContent = 'Modifier — ' + c.nom;
+  document.getElementById('btn-del-form').style.display = 'block';
+  document.getElementById('f-nom').value=c.nom;
+  document.getElementById('f-ville').value=c.ville;
+  const allFl = {}; Object.values(SCHOOLS_CONFIG).forEach(s => Object.assign(allFl, s.filieres));
+  document.getElementById('f-filiere').innerHTML = Object.entries(allFl).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
+  document.getElementById('f-filiere').value=c.filiere;
+  document.getElementById('f-statut').value=c.statut;
+  document.getElementById('f-contact').value=c.contact||'';
+  document.getElementById('f-email').value=c.email||'';
+  document.getElementById('f-tel').value=c.tel||'';
+  document.getElementById('f-offre').value=c.offre||'';
+  document.getElementById('f-web').value=c.web||'';
+  document.getElementById('f-lat').value=c.lat||'';
+  document.getElementById('f-lng').value=c.lng||'';
+  document.getElementById('f-notes').value=c.notes||'';
+  document.getElementById('f-obtenu').innerHTML = teamOptions(c.obtenu_par||'');
+  document.getElementById('f-ecoles-grid').innerHTML = schoolCheckboxes(c.ecoles||[]);
+  document.getElementById('form-modal').classList.add('open');
+}
+
+function saveCompany() {
+  const nom=document.getElementById('f-nom').value.trim(), ville=document.getElementById('f-ville').value.trim();
+  if(!nom||!ville){showBanner('error','&#9888; Nom et ville obligatoires.');return;}
+  const ecoles = getCheckedSchools();
+  if(!ecoles.length){showBanner('error','&#9888; Sélectionnez au moins une école.');return;}
+  const data = {
+    nom, ville, filiere:document.getElementById('f-filiere').value,
+    statut:document.getElementById('f-statut').value,
+    contact:document.getElementById('f-contact').value.trim()||'—',
+    email:document.getElementById('f-email').value.trim(),
+    tel:document.getElementById('f-tel').value.trim()||'—',
+    offre:document.getElementById('f-offre').value,
+    web:document.getElementById('f-web').value.trim(),
+    lat:parseFloat(document.getElementById('f-lat').value)||null,
+    lng:parseFloat(document.getElementById('f-lng').value)||null,
+    notes:document.getElementById('f-notes').value.trim(),
+    ecoles,
+    obtenu_par:document.getElementById('f-obtenu').value,
+  };
+  closeModal('form-modal');
+  if(editingId) {
+    const i=companies.findIndex(c=>c.id===editingId);
+    if(i>=0) { data.dernier_echange = companies[i].dernier_echange; data.exchanges = companies[i].exchanges||[]; companies[i]={...companies[i],...data}; if(CONFIG.mode==='gsheet') gsUpdateEntreprise(editingId, companies[i]); }
+  } else {
+    const newC = {...data, id:nextLocalId++, dernier_echange:'', exchanges:[]};
+    companies.push(newC);
+    if(CONFIG.mode==='gsheet') gsCreateEntreprise(newC);
+  }
+  renderAll(); saveConfig();
+}
+
+function confirmDelete(id){const c=companies.find(x=>x.id===id);if(!c)return;if(!confirm(`Supprimer "${c.nom}" ?`))return;if(CONFIG.mode==='gsheet')gsDeleteEntreprise(id);companies=companies.filter(c=>c.id!==id);renderAll();saveConfig();}
+function deleteFromForm(){if(!editingId)return;closeModal('form-modal');confirmDelete(editingId);}
+function deleteFromDetail(){if(!detailId)return;closeModal('detail-modal');confirmDelete(detailId);}
+function editFromDetail(){closeModal('detail-modal');openEditModal(detailId);}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DETAIL VIEW WITH EXCHANGE LOG
+   ═══════════════════════════════════════════════════════════════════ */
+function showDetail(id) {
+  const c = companies.find(x=>x.id===id); if(!c) return;
+  detailId = id;
+  document.getElementById('det-name').textContent = c.nom;
+  const fl = FL(), f = fl[c.filiere], s = STATUSES[c.statut];
+  const exchanges = (c.exchanges||[]).sort((a,b)=>b.date.localeCompare(a.date));
+  
+  document.getElementById('det-body').innerHTML = `
+    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px">
+      ${s?`<span class="badge" style="background:${s.bg};color:${s.text}">${s.label}</span>`:''}
+      ${f?`<span class="ftag" style="background:${f.bg};color:${f.color}">${f.label}</span>`:''}
+      ${c.offre?`<span class="badge" style="background:#f5f5f2;color:#666">${c.offre}</span>`:''}
+      ${(c.ecoles||[]).map(e=>`<span class="school-tag">${SCHOOLS_CONFIG[e]?.name||e}</span>`).join('')}
+    </div>
+    ${[
+      ['Ville',c.ville],['Contact',c.contact],
+      ['Email',c.email?`<a href="mailto:${c.email}" style="color:#185FA5">${c.email}</a>`:'—'],
+      ['Téléphone',c.tel],
+      ['Site web',c.web?`<a href="${c.web}" target="_blank" style="color:#185FA5">${c.web}</a>`:'—'],
+      ['Obtenu par',`<strong style="color:var(--accent)">${c.obtenu_par||'—'}</strong>`],
+      ['Dern. échange',`<strong style="color:var(--accent)">${c.dernier_echange||'—'}</strong>`],
+    ].map(([k,v])=>`<div class="detail-row"><span class="detail-key">${k}</span><span class="detail-val">${v}</span></div>`).join('')}
+    ${c.notes?`<div class="note-box">${c.notes}</div>`:''}
+    
+    <div class="exchange-section">
+      <h4>&#128172; Historique des échanges (${exchanges.length})</h4>
+      ${exchanges.map(ex => `
+        <div class="exchange-item">
+          <button class="ex-del" onclick="event.stopPropagation();deleteExchange(${c.id},'${ex.id}')" title="Supprimer">&#10005;</button>
+          <div class="ex-meta">
+            <span class="ex-who">${ex.auteur}</span>
+            <span class="ex-date">${formatDate(ex.date)}</span>
+          </div>
+          <div class="ex-text">${ex.resume}</div>
+        </div>
+      `).join('') || '<div style="font-size:11px;color:var(--text-tertiary);padding:8px 0">Aucun échange enregistré</div>'}
+      
+      <div class="exchange-add">
+        <textarea id="new-exchange-text" placeholder="Résumé de l'échange..."></textarea>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <select id="new-exchange-who">${teamOptions('')}</select>
+          <button class="btn btn-primary btn-sm" onclick="addExchange(${c.id})" style="height:30px">Ajouter</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('detail-modal').classList.add('open');
+}
+
+function addExchange(companyId) {
+  const text = document.getElementById('new-exchange-text').value.trim();
+  const who = document.getElementById('new-exchange-who').value;
+  if (!text) { showBanner('error','&#9888; Écrivez un résumé d\'échange.'); return; }
+  if (!who) { showBanner('error','&#9888; Sélectionnez l\'auteur de l\'échange.'); return; }
+  
+  const c = companies.find(x=>x.id===companyId);
+  if (!c) return;
+  if (!c.exchanges) c.exchanges = [];
+  const newEx = { id: 'ex' + (nextExchangeId++), date: new Date().toISOString().slice(0,10), auteur: who, resume: text };
+  c.exchanges.push(newEx);
+  c.dernier_echange = who;
+  if(CONFIG.mode==='gsheet') {
+    gsCreateEchange({id:newEx.id, entrepriseId:c.id, date:newEx.date, auteur:who, resume:text});
+    gsUpdateEntreprise(c.id, c);
+  }
+  saveConfig(); renderAll();
+  showDetail(companyId); // refresh detail view
+}
+
+function deleteExchange(companyId, exchangeId) {
+  const c = companies.find(x=>x.id===companyId);
+  if (!c || !c.exchanges) return;
+  c.exchanges = c.exchanges.filter(e => e.id !== exchangeId);
+  // Update dernier_echange
+  if (c.exchanges.length) {
+    const sorted = [...c.exchanges].sort((a,b)=>b.date.localeCompare(a.date));
+    c.dernier_echange = sorted[0].auteur;
+  } else { c.dernier_echange = ''; }
+  saveConfig(); renderAll();
+  showDetail(companyId);
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  const parts = d.split('-');
+  if (parts.length===3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  return d;
+}
+
+/* ═══ UI ═══ */
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function showBanner(type,msg){const w=document.getElementById('sp-banner-wrap');w.innerHTML=`<div class="sp-banner ${type}">${msg}</div>`;if(type==='success')setTimeout(()=>{w.innerHTML='';},3000);}
+function showLoading(on){let el=document.getElementById('loading-overlay');if(on){if(!el){el=document.createElement('div');el.id='loading-overlay';el.className='loading-overlay';el.innerHTML='<div class="spinner"></div>';document.getElementById('app').appendChild(el);}}else{if(el)el.remove();}}
+
+/* ═══ EXPORT ═══ */
+function exportCSV(){const fl=FL(),rows=getFiltered(),h=['Nom','Ville','Écoles','Filière','Statut','Contact','Email','Téléphone','Offre','Obtenu par','Dern. échange','Notes'],csv=[h.join(';')].concat(rows.map(c=>[c.nom,c.ville,(c.ecoles||[]).map(e=>SCHOOLS_CONFIG[e]?.name||e).join('+'),fl[c.filiere]?.label||c.filiere,STATUSES[c.statut]?.label||c.statut,c.contact,c.email,c.tel,c.offre,c.obtenu_par,c.dernier_echange,c.notes].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(';'))).join('\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`crm_edh_${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(url);}
+function exportAll(){const data=JSON.stringify({companies,team:TEAM_MEMBERS,columns:TABLE_COLUMNS,statuses:STATUSES,schools:SCHOOLS_CONFIG},null,2);const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`edh_crm_backup_${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url);}
+function importAll(event){const file=event.target.files[0];if(!file)return;const r=new FileReader();r.onload=e=>{try{const cfg=JSON.parse(e.target.result);if(cfg.companies)companies=cfg.companies;if(cfg.team)TEAM_MEMBERS=cfg.team;if(cfg.columns)TABLE_COLUMNS.splice(0,TABLE_COLUMNS.length,...cfg.columns);if(cfg.statuses)Object.assign(STATUSES,cfg.statuses);if(cfg.schools)Object.keys(cfg.schools).forEach(k=>{if(!SCHOOLS_CONFIG[k])SCHOOLS_CONFIG[k]=cfg.schools[k];});saveConfig();buildSchoolSelector();switchSchool('all');showBanner('success','&#10003; Import réussi !');}catch(err){showBanner('error','&#9888; JSON invalide: '+err.message);}};r.readAsText(file);event.target.value='';}
+
+/* ═══ ADMIN ═══ */
+function openAdmin(){document.getElementById('admin-modal').classList.add('open');renderAdminTeam();renderAdminCols();renderAdminEcoles();renderAdminFilieres();}
+function switchAdminTab(tab){document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.admin-section').forEach(s=>s.classList.remove('active'));event.target.classList.add('active');const el=document.getElementById('admin-'+tab);if(el)el.classList.add('active');}
+
+function renderAdminTeam(){
+  document.getElementById('admin-team-list').innerHTML = TEAM_MEMBERS.map((m,i) => `
+    <div class="item-row">
+      <span class="dot" style="background:var(--accent)"></span>
+      <span>${m.nom}</span>
+      <span class="code">${SCHOOLS_CONFIG[m.ecole]?.name||m.ecole}</span>
+      <span class="code">${m.role||''}</span>
+      <button class="btn btn-sm btn-danger" onclick="TEAM_MEMBERS.splice(${i},1);renderAdminTeam();saveConfig()">×</button>
+    </div>
+  `).join('');
+}
+
+function addTeamMember(){
+  const nom=document.getElementById('new-member-name').value.trim();
+  const ecole=document.getElementById('new-member-school').value;
+  const role=document.getElementById('new-member-role').value.trim();
+  if(!nom) return;
+  TEAM_MEMBERS.push({nom, ecole, role: role||'Collaborateur'});
+  document.getElementById('new-member-name').value='';
+  document.getElementById('new-member-role').value='';
+  renderAdminTeam(); saveConfig();
+}
+
+function renderAdminFilieres(){
+  const schoolCode = document.getElementById('admin-filiere-school')?.value || 'brassart';
+  document.getElementById('admin-filieres-list').innerHTML = Object.entries(SCHOOLS_CONFIG[schoolCode]?.filieres||{}).map(([k,v])=>`<div class="item-row"><span class="dot" style="background:${v.dot}"></span><span>${v.label}</span><span class="code">${k}</span><input type="color" value="${v.dot}" class="color-input" onchange="SCHOOLS_CONFIG['${schoolCode}'].filieres['${k}'].dot=this.value;SCHOOLS_CONFIG['${schoolCode}'].filieres['${k}'].color=this.value;SCHOOLS_CONFIG['${schoolCode}'].filieres['${k}'].bg=this.value+'20';saveConfig()"><button class="btn btn-sm btn-danger" onclick="delete SCHOOLS_CONFIG['${schoolCode}'].filieres['${k}'];renderAdminFilieres();saveConfig()">×</button></div>`).join('');
+}
+
+function addFiliere(){const schoolCode=document.getElementById('admin-filiere-school').value;const code=document.getElementById('new-filiere-code').value.trim().toLowerCase().replace(/[^a-z0-9]/g,'');const label=document.getElementById('new-filiere-label').value.trim();const color=document.getElementById('new-filiere-color').value;if(!code||!label)return;SCHOOLS_CONFIG[schoolCode].filieres[code]={label,bg:color+'20',color,dot:color};document.getElementById('new-filiere-code').value='';document.getElementById('new-filiere-label').value='';renderAdminFilieres();saveConfig();}
+
+function renderAdminCols(){document.getElementById('admin-cols-list').innerHTML=TABLE_COLUMNS.map((c,i)=>`<div class="col-vis-row"><label><input type="checkbox" ${c.visible?'checked':''} onchange="TABLE_COLUMNS[${i}].visible=this.checked;renderAll();renderAdminCols();saveConfig()"> ${c.label||c.key}</label><span class="code" style="font-size:9px">${c.key}</span>${!c.system?`<button class="btn btn-sm btn-danger" onclick="TABLE_COLUMNS.splice(${i},1);renderAll();renderAdminCols();saveConfig()">×</button>`:''}</div>`).join('');}
+function addColumn(){const key=document.getElementById('new-col-key').value.trim().toLowerCase().replace(/[^a-z0-9_]/g,''),label=document.getElementById('new-col-label').value.trim();if(!key||!label)return;TABLE_COLUMNS.splice(TABLE_COLUMNS.length-1,0,{key,label,width:'10%',visible:true,system:false});document.getElementById('new-col-key').value='';document.getElementById('new-col-label').value='';renderAdminCols();renderAll();saveConfig();}
+
+function renderAdminEcoles(){document.getElementById('admin-ecoles-list').innerHTML=Object.entries(SCHOOLS_CONFIG).map(([k,v])=>`<div class="item-row"><span class="dot" style="background:var(--accent)"></span><span>${v.name}</span><span class="code">${k}</span><span class="code" style="font-size:9px">${Object.keys(v.filieres).length} fil.</span></div>`).join('');}
+function addSchool(){const code=document.getElementById('new-school-code').value.trim().toLowerCase().replace(/[^a-z0-9]/g,''),name=document.getElementById('new-school-name').value.trim(),sub=document.getElementById('new-school-sub').value.trim();if(!code||!name)return;SCHOOLS_CONFIG[code]={name,subtitle:sub||name,filieres:{general:{label:'Général',bg:'#E6F1FB',color:'#185FA5',dot:'#378ADD'}}};document.getElementById('new-school-code').value='';document.getElementById('new-school-name').value='';document.getElementById('new-school-sub').value='';buildSchoolSelector();renderAdminEcoles();saveConfig();}
+
+/* ═══════════════════════════════════════════════════════════════════
+   GOOGLE SHEETS API
+   - Lecture : via Google Sheets API v4 (clé API publique)
+   - Écriture : via Google Apps Script déployé en Web App
+   - 3 onglets dans le Sheet : Entreprises, Echanges, Equipe
+   ═══════════════════════════════════════════════════════════════════ */
+
+// ── LECTURE d'un onglet entier ──
+async function gsRead(sheetName) {
+  if (!CONFIG.sheetId || !CONFIG.apiKey) return null;
+  try {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.sheetId}/values/${encodeURIComponent(sheetName)}?key=${CONFIG.apiKey}`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    const rows = d.values || [];
+    if (rows.length < 2) return [];
+    const headers = rows[0].map(h => h.trim().toLowerCase());
+    return rows.slice(1).map(row => {
+      const obj = {};
+      headers.forEach((h, i) => { obj[h] = (row[i] || '').trim(); });
+      return obj;
+    });
+  } catch(e) { console.error('Lecture Google Sheet:', e); return null; }
+}
+
+// ── ÉCRITURE via Apps Script Web App ──
+async function gsWrite(action, data) {
+  if (!CONFIG.scriptUrl) return false;
+  try {
+    const r = await fetch(CONFIG.scriptUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action, ...data })
+    });
+    const d = await r.json();
+    return d.success || false;
+  } catch(e) { console.error('Écriture Google Sheet:', e); return false; }
+}
+
+// ── LIRE les entreprises ──
+async function gsReadEntreprises() {
+  const rows = await gsRead('Entreprises');
+  if (!rows) return null;
+  return rows.map((r, idx) => ({
+    id: parseInt(r.id) || (9000 + idx),
+    nom: r.nom || '',
+    ville: r.ville || '',
+    filiere: r.filiere || '',
+    statut: r.statut || 'froid',
+    contact: r.contact || '—',
+    email: r.email || '',
+    tel: r.tel || '—',
+    offre: r.offre || '',
+    web: r.siteweb || r.web || '',
+    lat: parseFloat(r.lat) || null,
+    lng: parseFloat(r.lng) || null,
+    notes: r.notes || '',
+    ecoles: (r.ecoles || '').split(',').map(s => s.trim()).filter(Boolean),
+    obtenu_par: r.obteneurcontact || r.obtenu_par || '',
+    dernier_echange: r.dernierechange || r.dernier_echange || '',
+    exchanges: []
+  })).filter(c => c.nom);
+}
+
+// ── LIRE les échanges ──
+async function gsReadEchanges() {
+  const rows = await gsRead('Echanges');
+  if (!rows) return [];
+  return rows.map(r => ({
+    id: r.id || ('gs' + Math.random().toString(36).slice(2, 8)),
+    entrepriseId: parseInt(r.entrepriseid) || 0,
+    date: r.date || '',
+    auteur: r.auteur || '',
+    resume: r.resume || ''
+  }));
+}
+
+// ── LIRE l'équipe ──
+async function gsReadEquipe() {
+  const rows = await gsRead('Equipe');
+  if (!rows) return null;
+  return rows.map(r => ({
+    nom: r.nom || '',
+    ecole: r.ecole || '',
+    role: r.role || '',
+    email: r.email || ''
+  })).filter(m => m.nom);
+}
+
+// ── ÉCRIRE une entreprise ──
+async function gsCreateEntreprise(c) {
+  return gsWrite('addEntreprise', {
+    row: [c.id, c.nom, c.ville, c.filiere, c.statut, c.contact, c.email, c.tel, c.offre, c.web || '', c.lat || '', c.lng || '', c.notes, (c.ecoles || []).join(','), c.obtenu_par || '', c.dernier_echange || '', new Date().toISOString().slice(0, 10)]
+  });
+}
+
+// ── MODIFIER une entreprise ──
+async function gsUpdateEntreprise(id, c) {
+  return gsWrite('updateEntreprise', {
+    id: id,
+    row: [id, c.nom, c.ville, c.filiere, c.statut, c.contact, c.email, c.tel, c.offre, c.web || '', c.lat || '', c.lng || '', c.notes, (c.ecoles || []).join(','), c.obtenu_par || '', c.dernier_echange || '', new Date().toISOString().slice(0, 10)]
+  });
+}
+
+// ── SUPPRIMER une entreprise ──
+async function gsDeleteEntreprise(id) {
+  return gsWrite('deleteEntreprise', { id: id });
+}
+
+// ── AJOUTER un échange ──
+async function gsCreateEchange(ex) {
+  return gsWrite('addEchange', {
+    row: [ex.id, ex.entrepriseId, ex.date, ex.auteur, ex.resume]
+  });
+}
+
+// ── SYNC COMPLET ──
+async function syncData() {
+  if (CONFIG.mode === 'demo') {
+    showBanner('demo', '&#9888; Mode démo — Activez Google Sheets dans &#9881; Administration > Connexion.');
+    return;
+  }
+  if (!CONFIG.sheetId || !CONFIG.apiKey) {
+    showBanner('error', '&#9888; Configurez l\'ID du Google Sheet et la clé API dans Administration > Connexion.');
+    return;
+  }
+  showLoading(true);
+  showBanner('info', '&#8987; Synchronisation avec Google Sheets...');
+  try {
+    const ent = await gsReadEntreprises();
+    const exch = await gsReadEchanges();
+    const team = await gsReadEquipe();
+
+    if (ent !== null) {
+      ent.forEach(c => {
+        c.exchanges = exch.filter(e => e.entrepriseId === c.id).map(e => ({
+          id: e.id, date: e.date, auteur: e.auteur, resume: e.resume
+        }));
+      });
+      companies = ent;
+    }
+    if (team !== null && team.length > 0) {
+      TEAM_MEMBERS = team;
+    }
+
+    saveConfig();
+    renderAll();
+    showBanner('success', `&#10003; Synchronisé ! ${companies.length} entreprises, ${exch.length} échanges, ${TEAM_MEMBERS.length} membres.`);
+  } catch (e) {
+    showBanner('error', '&#9888; Erreur : ' + e.message);
+  } finally {
+    showLoading(false);
+  }
+}
+/* init() is called after DOM is ready — see end of file */
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     HTML STRUCTURE
+     ═══════════════════════════════════════════════════════════════════ -->
+<div class="app" id="app" style="position:relative">
+  <div class="sidebar">
+    <div class="sb-logo"><span>Groupe EDH — CRM</span><small>Entreprises partenaires</small></div>
+    <div class="school-selector"><select id="school-select" onchange="switchSchool(this.value)"></select></div>
+    <div class="nav-section">Filières</div>
+    <div id="filiere-nav"></div>
+    <div class="status-section">
+      <div class="nav-section">Statut</div>
+      <div class="nav-item" data-s="partenaire" onclick="setStatus('partenaire')"><span class="nav-dot" style="background:#1D9E75"></span>Partenaire</div>
+      <div class="nav-item" data-s="chaud" onclick="setStatus('chaud')"><span class="nav-dot" style="background:#D85A30"></span>Chaud</div>
+      <div class="nav-item" data-s="tiede" onclick="setStatus('tiede')"><span class="nav-dot" style="background:#EF9F27"></span>Tiède</div>
+      <div class="nav-item" data-s="froid" onclick="setStatus('froid')"><span class="nav-dot" style="background:#378ADD"></span>Froid</div>
+    </div>
+    <div class="sb-footer">
+      <button onclick="syncData()">&#8635; Synchroniser</button>
+      <button onclick="openAdmin()">&#9881; Administration</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <h2 id="view-title">Toutes les entreprises</h2>
+      <div class="tabs"><button class="tab active" id="tab-list" onclick="switchTab('list')">Liste</button><button class="tab" id="tab-map" onclick="switchTab('map')">Carte</button></div>
+      <div class="search-wrap"><svg class="search-icon" width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.5"/><line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><input type="text" id="search-input" placeholder="Rechercher..." oninput="onSearch()"></div>
+      <button class="btn" onclick="exportCSV()">&#8615; CSV</button>
+      <button class="btn btn-primary" onclick="openAddModal()">+ Ajouter</button>
+    </div>
+    <div class="view-list active" id="view-list"><div class="content"><div id="sp-banner-wrap"></div><div class="stats-row" id="stats-row"></div><div class="table-wrap"><table><thead><tr id="table-head"></tr></thead><tbody id="table-body"></tbody></table></div></div></div>
+    <div class="view-map" id="view-map"><div id="map"></div><div class="map-legend"><div class="leg-item"><div class="leg-dot" style="background:#1D9E75"></div>Partenaire</div><div class="leg-item"><div class="leg-dot" style="background:#D85A30"></div>Chaud</div><div class="leg-item"><div class="leg-dot" style="background:#EF9F27"></div>Tiède</div><div class="leg-item"><div class="leg-dot" style="background:#378ADD"></div>Froid</div></div></div>
+  </div>
+</div>
+
+<!-- FORM MODAL -->
+<div class="modal-bg" id="form-modal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="modal-title">Ajouter</h3><button class="modal-close" onclick="closeModal('form-modal')">×</button></div>
+    <div class="modal-body">
+      <div class="fgrid"><div class="fg"><label class="fl">Nom *</label><input id="f-nom" placeholder="Ubisoft"></div><div class="fg"><label class="fl">Ville *</label><input id="f-ville" placeholder="Paris"></div></div>
+      <div class="fg"><label class="fl">Écoles intéressées *</label><div class="checkbox-grid" id="f-ecoles-grid"></div></div>
+      <div class="fgrid"><div class="fg"><label class="fl">Filière principale</label><select id="f-filiere"></select></div><div class="fg"><label class="fl">Statut</label><select id="f-statut"><option value="froid">Froid</option><option value="tiede">Tiède</option><option value="chaud">Chaud</option><option value="partenaire">Partenaire</option></select></div></div>
+      <div class="fgrid"><div class="fg"><label class="fl">Contact entreprise</label><input id="f-contact" placeholder="Jean Dupont"></div><div class="fg"><label class="fl">Email</label><input id="f-email" placeholder="contact@entreprise.fr"></div></div>
+      <div class="fgrid"><div class="fg"><label class="fl">Téléphone</label><input id="f-tel" placeholder="+33 1 00 00 00 00"></div><div class="fg"><label class="fl">Type d'offre</label><select id="f-offre"><option value="">—</option><option value="Stage">Stage</option><option value="Alternance">Alternance</option><option value="CDI/CDD">CDI/CDD</option><option value="Stage + Alternance">Stage + Alternance</option><option value="Tous profils">Tous profils</option></select></div></div>
+      <div class="fgrid"><div class="fg"><label class="fl">Site web</label><input id="f-web" placeholder="https://..."></div><div class="fg"><label class="fl">Obtenu par (qui a eu le contact)</label><select id="f-obtenu"></select></div></div>
+      <div class="fgrid"><div class="fg"><label class="fl">Latitude</label><input id="f-lat" type="number" step="0.0001" placeholder="48.8566"></div><div class="fg"><label class="fl">Longitude</label><input id="f-lng" type="number" step="0.0001" placeholder="2.3522"></div></div>
+      <div class="fg"><label class="fl">Notes</label><textarea id="f-notes" rows="2" placeholder="Infos complémentaires..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="btn-del-form" style="display:none;margin-right:auto" onclick="deleteFromForm()">Supprimer</button>
+      <button class="btn" onclick="closeModal('form-modal')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveCompany()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-bg" id="detail-modal">
+  <div class="modal" style="width:580px">
+    <div class="modal-header"><h3 id="det-name">—</h3><button class="modal-close" onclick="closeModal('detail-modal')">×</button></div>
+    <div class="modal-body" id="det-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="deleteFromDetail()" style="margin-right:auto">Supprimer</button>
+      <button class="btn" onclick="closeModal('detail-modal')">Fermer</button>
+      <button class="btn btn-primary" onclick="editFromDetail()">Modifier</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN MODAL -->
+<div class="modal-bg" id="admin-modal">
+  <div class="modal" style="width:640px">
+    <div class="modal-header"><h3>&#9881; Administration</h3><button class="modal-close" onclick="closeModal('admin-modal')">×</button></div>
+    <div class="admin-tabs">
+      <button class="admin-tab active" onclick="switchAdminTab('equipe')">Équipe</button>
+      <button class="admin-tab" onclick="switchAdminTab('filieres')">Filières</button>
+      <button class="admin-tab" onclick="switchAdminTab('colonnes')">Colonnes</button>
+      <button class="admin-tab" onclick="switchAdminTab('ecoles')">Écoles</button>
+      <button class="admin-tab" onclick="switchAdminTab('connexion')">Connexion</button>
+      <button class="admin-tab" onclick="switchAdminTab('export')">Import/Export</button>
+    </div>
+
+    <div class="admin-section active" id="admin-equipe">
+      <div class="config-card"><h4>Membres de l'équipe</h4><p>Liste des collaborateurs qui apparaissent dans les listes déroulantes "Obtenu par" et "Dernier échange". Alimenté depuis l'onglet Excel "Equipe" en mode connecté.</p></div>
+      <div id="admin-team-list"></div>
+      <div class="inline-add" style="flex-wrap:wrap">
+        <input id="new-member-name" placeholder="Nom complet" style="min-width:120px">
+        <select id="new-member-school" style="width:100px;padding:5px;border:0.5px solid var(--border-md);border-radius:var(--radius-md);font-size:12px"></select>
+        <input id="new-member-role" placeholder="Rôle" style="min-width:100px">
+        <button class="btn btn-primary btn-sm" onclick="addTeamMember()">+</button>
+      </div>
+    </div>
+
+    <div class="admin-section" id="admin-filieres">
+      <div class="config-card"><h4>Filières par école</h4><p>Gérez les filières de chaque école.</p></div>
+      <div class="fg"><label class="fl">École</label><select id="admin-filiere-school" onchange="renderAdminFilieres()" style="width:100%;padding:6px 8px;border:0.5px solid var(--border-md);border-radius:var(--radius-md);font-size:12px"></select></div>
+      <div id="admin-filieres-list"></div>
+      <div class="inline-add">
+        <input id="new-filiere-code" placeholder="Code" style="width:70px">
+        <input id="new-filiere-label" placeholder="Nom">
+        <input type="color" id="new-filiere-color" value="#7F77DD" class="color-input">
+        <button class="btn btn-primary btn-sm" onclick="addFiliere()">+</button>
+      </div>
+    </div>
+
+    <div class="admin-section" id="admin-colonnes">
+      <div class="config-card"><h4>Colonnes du tableau</h4><p>Activez/désactivez, ajoutez des colonnes personnalisées.</p></div>
+      <div id="admin-cols-list"></div>
+      <div class="inline-add">
+        <input id="new-col-key" placeholder="Clé" style="width:70px">
+        <input id="new-col-label" placeholder="Nom">
+        <button class="btn btn-primary btn-sm" onclick="addColumn()">+</button>
+      </div>
+    </div>
+
+    <div class="admin-section" id="admin-ecoles">
+      <div class="config-card"><h4>Écoles du groupe</h4><p>Ajoutez une nouvelle école.</p></div>
+      <div id="admin-ecoles-list"></div>
+      <div class="fgrid" style="margin-top:8px"><div class="fg"><label class="fl">Code</label><input id="new-school-code" placeholder="newschool"></div><div class="fg"><label class="fl">Nom</label><input id="new-school-name" placeholder="Nouvelle École"></div></div>
+      <div class="fg"><label class="fl">Sous-titre</label><input id="new-school-sub" placeholder="Spécialité"></div>
+      <button class="btn btn-primary btn-sm" onclick="addSchool()">Ajouter</button>
+    </div>
+
+    <div class="admin-section" id="admin-connexion">
+      <div id="gs-conn-status" style="margin-bottom:10px"></div>
+      <div class="config-card"><h4>Connexion Google Sheets</h4><p>Le CRM lit et écrit dans un Google Sheet partagé. Toute votre équipe voit les mêmes données. Le Google Sheet reste modifiable directement comme un Excel en ligne.</p></div>
+      
+      <div class="fg"><label class="fl">ID du Google Sheet</label><input id="cfg-sheet-id" placeholder="Copiez la partie entre /d/ et /edit de l'URL du Sheet"></div>
+      <div class="fg"><label class="fl">Clé API Google (pour la lecture)</label><input id="cfg-api-key" placeholder="AIzaSy..."></div>
+      <div class="fg"><label class="fl">URL du script Google Apps Script (pour l'écriture)</label><input id="cfg-script-url" placeholder="https://script.google.com/macros/s/.../exec"></div>
+
+      <div style="display:flex;gap:6px;margin-top:10px">
+        <button class="btn btn-primary" onclick="activateGSheet()">Activer Google Sheets</button>
+        <button class="btn" onclick="activateDemo()">Repasser en démo</button>
+      </div>
+
+      <div class="config-card" style="margin-top:12px">
+        <h4>Guide de configuration (5 minutes)</h4>
+        <p><strong>1.</strong> Créez un Google Sheet avec 3 onglets : <strong>Entreprises</strong>, <strong>Echanges</strong>, <strong>Equipe</strong><br>
+        <strong>2.</strong> Ajoutez les en-têtes en ligne 1 (voir le guide Word)<br>
+        <strong>3.</strong> Partagez le Sheet en "Tout le monde avec le lien peut modifier"<br>
+        <strong>4.</strong> Allez sur <strong>console.cloud.google.com</strong> > créez un projet > activez "Google Sheets API" > créez une clé API<br>
+        <strong>5.</strong> Dans le Google Sheet, menu <strong>Extensions > Apps Script</strong>, collez le script fourni dans le guide, déployez en Web App<br>
+        <strong>6.</strong> Collez les 3 infos ci-dessus et cliquez "Activer"</p>
+      </div>
+    </div>
+
+    <div class="admin-section" id="admin-export">
+      <div class="config-card"><h4>Import / Export</h4><p>Sauvegardez ou restaurez config + données en JSON.</p></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn" onclick="exportAll()">&#8615; Exporter JSON</button>
+        <button class="btn" onclick="document.getElementById('import-file').click()">&#8613; Importer JSON</button>
+        <button class="btn" onclick="exportCSV()">&#8615; CSV (vue actuelle)</button>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importAll(event)">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══ BOOT — DOM is now ready ═══ */
+document.getElementById('new-member-school').innerHTML = Object.entries(SCHOOLS_CONFIG).map(([k,v])=>`<option value="${k}">${v.name}</option>`).join('');
+document.getElementById('admin-filiere-school').innerHTML = Object.entries(SCHOOLS_CONFIG).map(([k,v])=>`<option value="${k}">${v.name}</option>`).join('');
+
+function activateGSheet() {
+  CONFIG.sheetId = document.getElementById('cfg-sheet-id').value.trim();
+  CONFIG.apiKey = document.getElementById('cfg-api-key').value.trim();
+  CONFIG.scriptUrl = document.getElementById('cfg-script-url').value.trim();
+  if (!CONFIG.sheetId || !CONFIG.apiKey) {
+    showBanner('error','&#9888; L\'ID du Google Sheet et la clé API sont obligatoires.');
+    return;
+  }
+  CONFIG.mode = 'gsheet';
+  saveConfig();
+  showBanner('info','&#8987; Connexion à Google Sheets...');
+  syncData().then(() => { updateConnStatus(); });
+}
+
+function activateDemo() {
+  CONFIG.mode = 'demo';
+  saveConfig();
+  showBanner('demo','&#9888; Mode démo activé — données locales uniquement.');
+  updateConnStatus();
+}
+
+function updateConnStatus() {
+  const el = document.getElementById('gs-conn-status');
+  if (!el) return;
+  if (CONFIG.mode === 'gsheet' && CONFIG.sheetId) {
+    el.innerHTML = '<div style="padding:8px 12px;border-radius:8px;font-size:11px;background:#EAF3DE;border:0.5px solid #97C459;color:#173404;display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#1D9E75;flex-shrink:0"></span>Connecté à Google Sheets</div>';
+  } else {
+    el.innerHTML = '<div style="padding:8px 12px;border-radius:8px;font-size:11px;background:#FAEEDA;border:0.5px solid #FAC775;color:#412402;display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#EF9F27;flex-shrink:0"></span>Mode démo — données dans le navigateur uniquement</div>';
+  }
+}
+
+// Populate fields from saved config
+document.getElementById('cfg-sheet-id').value = CONFIG.sheetId || '';
+document.getElementById('cfg-api-key').value = CONFIG.apiKey || '';
+document.getElementById('cfg-script-url').value = CONFIG.scriptUrl || '';
+
+init();
+updateConnStatus();
+</script>
+
+</body>
+</html>
