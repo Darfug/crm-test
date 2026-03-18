@@ -221,16 +221,17 @@ let STATUSES = {
 };
  
 let TABLE_COLUMNS = [
-  {key:"nom",label:"Entreprise",width:"16%",visible:true,system:true},
-  {key:"ecoles",label:"Écoles",width:"14%",visible:true,system:true},
-  {key:"filiere",label:"Filière",width:"12%",visible:true,system:true},
-  {key:"statut",label:"Statut",width:"8%",visible:true,system:true},
-  {key:"contact",label:"Contact",width:"11%",visible:true,system:true},
-  {key:"ville",label:"Ville",width:"9%",visible:true,system:true},
-  {key:"offre",label:"Offre",width:"9%",visible:true,system:true},
-  {key:"obtenu_par",label:"Obtenu par",width:"9%",visible:true,system:true},
-  {key:"dernier_echange",label:"Dern. échange",width:"9%",visible:true,system:true},
-  {key:"_actions",label:"",width:"8%",visible:true,system:true}
+  {key:"nom",label:"Entreprise",width:"14%",visible:true,system:true},
+  {key:"siret",label:"SIRET",width:"10%",visible:true,system:true},
+  {key:"ecoles",label:"Écoles",width:"12%",visible:true,system:true},
+  {key:"filiere",label:"Filière",width:"11%",visible:true,system:true},
+  {key:"statut",label:"Statut",width:"7%",visible:true,system:true},
+  {key:"contact",label:"Contact",width:"9%",visible:true,system:true},
+  {key:"ville",label:"Ville",width:"8%",visible:true,system:true},
+  {key:"offre",label:"Offre",width:"8%",visible:true,system:true},
+  {key:"obtenu_par",label:"Obtenu par",width:"8%",visible:true,system:true},
+  {key:"dernier_echange",label:"Dern. échange",width:"8%",visible:true,system:true},
+  {key:"_actions",label:"",width:"7%",visible:true,system:true}
 ];
  
 /* ═══════════════════════════════════════════════════════════════════
@@ -503,7 +504,7 @@ function openAddModal() {
   editingId = null;
   document.getElementById('modal-title').textContent = 'Ajouter une entreprise';
   document.getElementById('btn-del-form').style.display = 'none';
-  ['nom','ville','contact','email','tel','web','notes'].forEach(f => document.getElementById('f-'+f).value = '');
+  ['nom','siret','ville','contact','email','tel','web','notes'].forEach(f => document.getElementById('f-'+f).value = '');
   document.getElementById('f-lat').value=''; document.getElementById('f-lng').value='';
   document.getElementById('f-statut').value='froid';
   document.getElementById('f-offre-grid').innerHTML = offreCheckboxes('');
@@ -519,6 +520,7 @@ function openEditModal(id) {
   document.getElementById('modal-title').textContent = 'Modifier — ' + c.nom;
   document.getElementById('btn-del-form').style.display = 'block';
   document.getElementById('f-nom').value=c.nom;
+  document.getElementById('f-siret').value=c.siret||'';
   document.getElementById('f-ville').value=c.ville;
   document.getElementById('f-ecoles-grid').innerHTML = schoolCheckboxes(c.ecoles||[]);
   updateFilieresFromSchools();
@@ -542,7 +544,8 @@ function saveCompany() {
   const ecoles = getCheckedSchools();
   if(!ecoles.length){showBanner('error','&#9888; Sélectionnez au moins une école.');return;}
   const data = {
-    nom, ville, filiere:document.getElementById('f-filiere').value,
+    nom, ville, siret:document.getElementById('f-siret').value.trim(),
+    filiere:document.getElementById('f-filiere').value,
     statut:document.getElementById('f-statut').value,
     contact:document.getElementById('f-contact').value.trim()||'—',
     email:document.getElementById('f-email').value.trim(),
@@ -592,6 +595,7 @@ function showDetail(id) {
       ${(c.ecoles||[]).map(e=>`<span class="school-tag">${SCHOOLS_CONFIG[e]?.name||e}</span>`).join('')}
     </div>
     ${[
+      ['SIRET',c.siret||'—'],
       ['Ville',c.ville],['Contact',c.contact],
       ['Email',c.email?`<a href="mailto:${c.email}" style="color:#185FA5">${c.email}</a>`:'—'],
       ['Téléphone',c.tel],
@@ -672,7 +676,7 @@ function showBanner(type,msg){const w=document.getElementById('sp-banner-wrap');
 function showLoading(on){let el=document.getElementById('loading-overlay');if(on){if(!el){el=document.createElement('div');el.id='loading-overlay';el.className='loading-overlay';el.innerHTML='<div class="spinner"></div>';document.getElementById('app').appendChild(el);}}else{if(el)el.remove();}}
  
 /* ═══ EXPORT ═══ */
-function exportCSV(){const fl=FL(),rows=getFiltered(),h=['Nom','Ville','Écoles','Filière','Statut','Contact','Email','Téléphone','Offre','Obtenu par','Dern. échange','Notes'],csv=[h.join(';')].concat(rows.map(c=>[c.nom,c.ville,(c.ecoles||[]).map(e=>SCHOOLS_CONFIG[e]?.name||e).join('+'),fl[c.filiere]?.label||c.filiere,STATUSES[c.statut]?.label||c.statut,c.contact,c.email,c.tel,c.offre,c.obtenu_par,c.dernier_echange,c.notes].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(';'))).join('\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`crm_edh_${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(url);}
+function exportCSV(){const fl=FL(),rows=getFiltered(),h=['Nom','SIRET','Ville','Écoles','Filière','Statut','Contact','Email','Téléphone','Offre','Obtenu par','Dern. échange','Notes'],csv=[h.join(';')].concat(rows.map(c=>[c.nom,c.siret||'',(c.ecoles||[]).map(e=>SCHOOLS_CONFIG[e]?.name||e).join('+'),c.ville,fl[c.filiere]?.label||c.filiere,STATUSES[c.statut]?.label||c.statut,c.contact,c.email,c.tel,c.offre,c.obtenu_par,c.dernier_echange,c.notes].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(';'))).join('\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`crm_edh_${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(url);}
 function exportAll(){const data=JSON.stringify({companies,team:TEAM_MEMBERS,columns:TABLE_COLUMNS,statuses:STATUSES,schools:SCHOOLS_CONFIG},null,2);const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`edh_crm_backup_${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url);}
 function importAll(event){const file=event.target.files[0];if(!file)return;const r=new FileReader();r.onload=e=>{try{const cfg=JSON.parse(e.target.result);if(cfg.companies)companies=cfg.companies;if(cfg.team)TEAM_MEMBERS=cfg.team;if(cfg.columns)TABLE_COLUMNS.splice(0,TABLE_COLUMNS.length,...cfg.columns);if(cfg.statuses)Object.assign(STATUSES,cfg.statuses);if(cfg.schools)Object.keys(cfg.schools).forEach(k=>{if(!SCHOOLS_CONFIG[k])SCHOOLS_CONFIG[k]=cfg.schools[k];});saveConfig();buildSchoolSelector();switchSchool('all');showBanner('success','&#10003; Import réussi !');}catch(err){showBanner('error','&#9888; JSON invalide: '+err.message);}};r.readAsText(file);event.target.value='';}
  
@@ -775,6 +779,7 @@ async function gsReadEntreprises() {
   return rows.map((r, idx) => ({
     id: parseInt(r.id) || (9000 + idx),
     nom: r.nom || '',
+    siret: r.siret || '',
     ville: r.ville || '',
     filiere: r.filiere || '',
     statut: r.statut || 'froid',
@@ -821,7 +826,7 @@ async function gsReadEquipe() {
 // ── ÉCRIRE une entreprise ──
 async function gsCreateEntreprise(c) {
   return gsWrite('addEntreprise', {
-    row: [c.id, c.nom, c.ville, c.filiere, c.statut, c.contact, c.email, c.tel, c.offre, c.web || '', c.lat || '', c.lng || '', c.notes, (c.ecoles || []).join(','), c.obtenu_par || '', c.dernier_echange || '', new Date().toISOString().slice(0, 10)]
+    row: [c.id, c.nom, c.siret || '', c.ville, c.filiere, c.statut, c.contact, c.email, c.tel, c.offre, c.web || '', c.lat || '', c.lng || '', c.notes, (c.ecoles || []).join(','), c.obtenu_par || '', c.dernier_echange || '', new Date().toISOString().slice(0, 10)]
   });
 }
  
@@ -829,7 +834,7 @@ async function gsCreateEntreprise(c) {
 async function gsUpdateEntreprise(id, c) {
   return gsWrite('updateEntreprise', {
     id: id,
-    row: [id, c.nom, c.ville, c.filiere, c.statut, c.contact, c.email, c.tel, c.offre, c.web || '', c.lat || '', c.lng || '', c.notes, (c.ecoles || []).join(','), c.obtenu_par || '', c.dernier_echange || '', new Date().toISOString().slice(0, 10)]
+    row: [id, c.nom, c.siret || '', c.ville, c.filiere, c.statut, c.contact, c.email, c.tel, c.offre, c.web || '', c.lat || '', c.lng || '', c.notes, (c.ecoles || []).join(','), c.obtenu_par || '', c.dernier_echange || '', new Date().toISOString().slice(0, 10)]
   });
 }
  
@@ -925,7 +930,8 @@ async function syncData() {
   <div class="modal">
     <div class="modal-header"><h3 id="modal-title">Ajouter</h3><button class="modal-close" onclick="closeModal('form-modal')">×</button></div>
     <div class="modal-body">
-      <div class="fgrid"><div class="fg"><label class="fl">Nom *</label><input id="f-nom" placeholder="Ubisoft"></div><div class="fg"><label class="fl">Ville *</label><input id="f-ville" placeholder="Paris"></div></div>
+      <div class="fgrid"><div class="fg"><label class="fl">Nom *</label><input id="f-nom" placeholder="Ubisoft"></div><div class="fg"><label class="fl">SIRET</label><input id="f-siret" placeholder="123 456 789 00012" maxlength="17"></div></div>
+      <div class="fg"><label class="fl">Ville *</label><input id="f-ville" placeholder="Paris"></div>
       <div class="fg"><label class="fl">Écoles intéressées *</label><div class="checkbox-grid" id="f-ecoles-grid"></div></div>
       <div class="fgrid"><div class="fg"><label class="fl">Filière principale</label><select id="f-filiere"></select></div><div class="fg"><label class="fl">Statut</label><select id="f-statut"><option value="froid">Froid</option><option value="tiede">Tiède</option><option value="chaud">Chaud</option><option value="partenaire">Partenaire</option></select></div></div>
       <div class="fgrid"><div class="fg"><label class="fl">Contact entreprise</label><input id="f-contact" placeholder="Jean Dupont"></div><div class="fg"><label class="fl">Email</label><input id="f-email" placeholder="contact@entreprise.fr"></div></div>
@@ -1093,3 +1099,4 @@ updateConnStatus();
  
 </body>
 </html>
+ 
