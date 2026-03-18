@@ -288,20 +288,28 @@ function FL() {
    INIT
    ═══════════════════════════════════════════════════════════════════ */
 function init() {
+  // Charger les préférences UI depuis localStorage (colonnes, statuts, écoles custom)
   try {
     const saved = localStorage.getItem('edh_crm_v3');
     if (saved) {
       const cfg = JSON.parse(saved);
-      if (cfg.companies) companies = cfg.companies;
-      if (cfg.team) TEAM_MEMBERS = cfg.team;
+      // Ne PAS charger companies/team depuis localStorage en mode gsheet
+      // On les chargera depuis Google Sheets via syncData()
       if (cfg.columns) TABLE_COLUMNS = cfg.columns;
       if (cfg.statuses) STATUSES = cfg.statuses;
       if (cfg.schools) Object.keys(cfg.schools).forEach(k => { if (!SCHOOLS_CONFIG[k]) SCHOOLS_CONFIG[k] = cfg.schools[k]; else Object.assign(SCHOOLS_CONFIG[k], cfg.schools[k]); });
-      if (cfg.gsConfig) { Object.assign(CONFIG, cfg.gsConfig); }
-    } else {
-      companies = DEMO_COMPANIES.map(c => ({...c, exchanges: (c.exchanges||[]).map(e => ({...e}))}));
+      // En mode demo, charger les données locales
+      if (CONFIG.mode !== 'gsheet') {
+        if (cfg.companies) companies = cfg.companies;
+        if (cfg.team) TEAM_MEMBERS = cfg.team;
+      }
     }
-  } catch(e) { companies = DEMO_COMPANIES.map(c => ({...c, exchanges: (c.exchanges||[]).map(e => ({...e}))})); }
+  } catch(e) {}
+  
+  // Si pas de données et mode demo, charger les données de démo
+  if (CONFIG.mode !== 'gsheet' && companies.length === 0) {
+    companies = DEMO_COMPANIES.map(c => ({...c, exchanges: (c.exchanges||[]).map(e => ({...e}))}));
+  }
   
   buildSchoolSelector();
   switchSchool('all');
@@ -314,7 +322,15 @@ function init() {
 }
  
 function saveConfig() {
-  try { localStorage.setItem('edh_crm_v3', JSON.stringify({companies, team:TEAM_MEMBERS, columns:TABLE_COLUMNS, statuses:STATUSES, schools:SCHOOLS_CONFIG, gsConfig:{mode:CONFIG.mode, sheetId:CONFIG.sheetId, scriptUrl:CONFIG.scriptUrl, apiKey:CONFIG.apiKey}})); } catch(e) {}
+  try {
+    const toSave = {columns:TABLE_COLUMNS, statuses:STATUSES, schools:SCHOOLS_CONFIG, gsConfig:{mode:CONFIG.mode, sheetId:CONFIG.sheetId, scriptUrl:CONFIG.scriptUrl, apiKey:CONFIG.apiKey}};
+    // En mode demo, sauvegarder aussi les données entreprises/team
+    if (CONFIG.mode !== 'gsheet') {
+      toSave.companies = companies;
+      toSave.team = TEAM_MEMBERS;
+    }
+    localStorage.setItem('edh_crm_v3', JSON.stringify(toSave));
+  } catch(e) {}
 }
  
 function buildSchoolSelector() {
@@ -408,6 +424,31 @@ function setStatus(s){curStatus=curStatus===s?null:s;curFiliere='all';document.q
 function onSearch(){renderAll();}
  
 /* ═══════════════════════════════════════════════════════════════════
+   TYPES DE PARTENARIAT
+   ═══════════════════════════════════════════════════════════════════ */
+const OFFRE_TYPES = [
+  "Stage", "Alternance", "CDI/CDD", "Workshop", "Projet partenaire",
+  "Battle", "Concours", "Conférence/Masterclass", "Jury", "Mentorat", "Mécénat"
+];
+ 
+function offreCheckboxes(selected) {
+  const sel = (selected || '').split(',').map(s => s.trim()).filter(Boolean);
+  return OFFRE_TYPES.map(t =>
+    `<label class="${sel.includes(t)?'checked':''}" onclick="toggleOffreCb(this)"><span class="cb-icon">&#10003;</span><input type="checkbox" name="f-offres" value="${t}" ${sel.includes(t)?'checked':''}>${t}</label>`
+  ).join('');
+}
+ 
+function toggleOffreCb(label) {
+  const cb = label.querySelector('input');
+  cb.checked = !cb.checked;
+  label.classList.toggle('checked', cb.checked);
+}
+ 
+function getCheckedOffres() {
+  return [...document.querySelectorAll('input[name="f-offres"]:checked')].map(cb => cb.value).join(', ');
+}
+ 
+/* ═══════════════════════════════════════════════════════════════════
    TEAM MEMBER DROPDOWN BUILDER
    ═══════════════════════════════════════════════════════════════════ */
 function teamOptions(selected) {
@@ -465,7 +506,7 @@ function openAddModal() {
   ['nom','ville','contact','email','tel','web','notes'].forEach(f => document.getElementById('f-'+f).value = '');
   document.getElementById('f-lat').value=''; document.getElementById('f-lng').value='';
   document.getElementById('f-statut').value='froid';
-  document.getElementById('f-offre').value='';
+  document.getElementById('f-offre-grid').innerHTML = offreCheckboxes('');
   document.getElementById('f-obtenu').innerHTML = teamOptions('');
   document.getElementById('f-ecoles-grid').innerHTML = schoolCheckboxes(currentSchoolFilter!=='all'?[currentSchoolFilter]:[]);
   updateFilieresFromSchools();
@@ -486,7 +527,7 @@ function openEditModal(id) {
   document.getElementById('f-contact').value=c.contact||'';
   document.getElementById('f-email').value=c.email||'';
   document.getElementById('f-tel').value=c.tel||'';
-  document.getElementById('f-offre').value=c.offre||'';
+  document.getElementById('f-offre-grid').innerHTML = offreCheckboxes(c.offre||'');
   document.getElementById('f-web').value=c.web||'';
   document.getElementById('f-lat').value=c.lat||'';
   document.getElementById('f-lng').value=c.lng||'';
@@ -506,7 +547,7 @@ function saveCompany() {
     contact:document.getElementById('f-contact').value.trim()||'—',
     email:document.getElementById('f-email').value.trim(),
     tel:document.getElementById('f-tel').value.trim()||'—',
-    offre:document.getElementById('f-offre').value,
+    offre:getCheckedOffres(),
     web:document.getElementById('f-web').value.trim(),
     lat:parseFloat(document.getElementById('f-lat').value)||null,
     lng:parseFloat(document.getElementById('f-lng').value)||null,
@@ -524,9 +565,11 @@ function saveCompany() {
     if(CONFIG.mode==='gsheet') gsCreateEntreprise(newC);
   }
   renderAll(); saveConfig();
+  // Auto-sync après écriture pour confirmer que les données sont bien dans le Sheet
+  if(CONFIG.mode==='gsheet') { setTimeout(()=>syncData(), 4000); }
 }
  
-function confirmDelete(id){const c=companies.find(x=>x.id===id);if(!c)return;if(!confirm(`Supprimer "${c.nom}" ?`))return;if(CONFIG.mode==='gsheet')gsDeleteEntreprise(id);companies=companies.filter(c=>c.id!==id);renderAll();saveConfig();}
+function confirmDelete(id){const c=companies.find(x=>x.id===id);if(!c)return;if(!confirm(`Supprimer "${c.nom}" ?`))return;if(CONFIG.mode==='gsheet')gsDeleteEntreprise(id);companies=companies.filter(c=>c.id!==id);renderAll();saveConfig();if(CONFIG.mode==='gsheet'){setTimeout(()=>syncData(),4000);}}
 function deleteFromForm(){if(!editingId)return;closeModal('form-modal');confirmDelete(editingId);}
 function deleteFromDetail(){if(!detailId)return;closeModal('detail-modal');confirmDelete(detailId);}
 function editFromDetail(){closeModal('detail-modal');openEditModal(detailId);}
@@ -886,8 +929,9 @@ async function syncData() {
       <div class="fg"><label class="fl">Écoles intéressées *</label><div class="checkbox-grid" id="f-ecoles-grid"></div></div>
       <div class="fgrid"><div class="fg"><label class="fl">Filière principale</label><select id="f-filiere"></select></div><div class="fg"><label class="fl">Statut</label><select id="f-statut"><option value="froid">Froid</option><option value="tiede">Tiède</option><option value="chaud">Chaud</option><option value="partenaire">Partenaire</option></select></div></div>
       <div class="fgrid"><div class="fg"><label class="fl">Contact entreprise</label><input id="f-contact" placeholder="Jean Dupont"></div><div class="fg"><label class="fl">Email</label><input id="f-email" placeholder="contact@entreprise.fr"></div></div>
-      <div class="fgrid"><div class="fg"><label class="fl">Téléphone</label><input id="f-tel" placeholder="+33 1 00 00 00 00"></div><div class="fg"><label class="fl">Type d'offre</label><select id="f-offre"><option value="">—</option><option value="Stage">Stage</option><option value="Alternance">Alternance</option><option value="CDI/CDD">CDI/CDD</option><option value="Stage + Alternance">Stage + Alternance</option><option value="Tous profils">Tous profils</option></select></div></div>
-      <div class="fgrid"><div class="fg"><label class="fl">Site web</label><input id="f-web" placeholder="https://..."></div><div class="fg"><label class="fl">Obtenu par (qui a eu le contact)</label><select id="f-obtenu"></select></div></div>
+      <div class="fgrid"><div class="fg"><label class="fl">Téléphone</label><input id="f-tel" placeholder="+33 1 00 00 00 00"></div><div class="fg"><label class="fl">Obtenu par (qui a eu le contact)</label><select id="f-obtenu"></select></div></div>
+      <div class="fg"><label class="fl">Types de partenariat</label><div class="checkbox-grid" id="f-offre-grid"></div></div>
+      <div class="fg"><label class="fl">Site web</label><input id="f-web" placeholder="https://..."></div>
       <div class="fgrid"><div class="fg"><label class="fl">Latitude</label><input id="f-lat" type="number" step="0.0001" placeholder="48.8566"></div><div class="fg"><label class="fl">Longitude</label><input id="f-lng" type="number" step="0.0001" placeholder="2.3522"></div></div>
       <div class="fg"><label class="fl">Notes</label><textarea id="f-notes" rows="2" placeholder="Infos complémentaires..."></textarea></div>
     </div>
@@ -1049,4 +1093,3 @@ updateConnStatus();
  
 </body>
 </html>
- 
