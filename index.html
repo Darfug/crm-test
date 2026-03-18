@@ -17,7 +17,7 @@ body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;backgrou
   --accent:#7F77DD;--accent-hover:#6d66c8;
   --red:#E24B4A;
 }
-
+ 
 /* ─── LAYOUT ─── */
 .app{display:flex;border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background:var(--bg-primary);min-height:700px;max-width:1440px;margin:0 auto}
 .sidebar{width:230px;background:var(--bg-secondary);border-right:0.5px solid var(--border);padding:14px 0;flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto}
@@ -36,7 +36,7 @@ body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;backgrou
 .sb-footer{padding:6px 12px;border-top:0.5px solid var(--border);margin-top:8px;display:flex;flex-direction:column;gap:4px}
 .sb-footer button{width:100%;padding:6px;border:0.5px solid var(--border-md);border-radius:var(--radius-md);font-size:11px;background:var(--bg-primary);cursor:pointer;color:var(--text-secondary);font-family:inherit;transition:all .12s;display:flex;align-items:center;justify-content:center;gap:5px}
 .sb-footer button:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
-
+ 
 /* ─── MAIN ─── */
 .main{flex:1;display:flex;flex-direction:column;min-width:0}
 .topbar{padding:10px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap}
@@ -58,7 +58,7 @@ body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;backgrou
 .stat-card{background:var(--bg-secondary);border-radius:var(--radius-md);padding:8px 10px}
 .stat-label{font-size:10px;color:var(--text-secondary);margin-bottom:2px}
 .stat-val{font-size:18px;font-weight:700;color:var(--text-primary)}
-
+ 
 /* ─── TABLE ─── */
 .table-wrap{border:0.5px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
 table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
@@ -66,7 +66,7 @@ th{background:var(--bg-secondary);padding:7px 8px;text-align:left;font-weight:60
 td{padding:7px 8px;border-bottom:0.5px solid var(--border);color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--bg-secondary);cursor:pointer}
-
+ 
 /* ─── TAGS ─── */
 .badge{display:inline-flex;align-items:center;padding:2px 6px;border-radius:10px;font-size:9px;font-weight:600}
 .ftag{display:inline-flex;padding:2px 6px;border-radius:8px;font-size:9px;font-weight:600}
@@ -74,7 +74,7 @@ tr:hover td{background:var(--bg-secondary);cursor:pointer}
 .school-tags-cell{display:flex;flex-wrap:wrap;gap:1px;overflow:hidden;max-height:20px}
 .act-btn{padding:2px 7px;border:0.5px solid var(--border-md);border-radius:5px;font-size:10px;cursor:pointer;background:none;color:var(--text-secondary);font-family:inherit}
 .act-del{border-color:#F0997B;color:#993C1D}
-
+ 
 /* ─── MAP ─── */
 .view-map{display:none;flex:1;flex-direction:column}.view-map.active{display:flex}
 .view-list{display:none;flex:1;flex-direction:column}.view-list.active{display:flex;flex-direction:column}
@@ -82,7 +82,7 @@ tr:hover td{background:var(--bg-secondary);cursor:pointer}
 .map-legend{display:flex;gap:10px;padding:6px 12px;border-top:0.5px solid var(--border);background:var(--bg-primary);flex-wrap:wrap}
 .leg-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text-secondary)}
 .leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-
+ 
 /* ─── MODALS ─── */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:9999;align-items:flex-start;justify-content:center;padding-top:30px;overflow-y:auto}
 .modal-bg.open{display:flex}
@@ -97,20 +97,22 @@ tr:hover td{background:var(--bg-secondary);cursor:pointer}
 .fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--accent)}
 .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .modal-footer{padding:10px 16px;border-top:0.5px solid var(--border);display:flex;justify-content:flex-end;gap:6px;align-items:center;position:sticky;bottom:0;background:var(--bg-primary)}
-
+ 
 /* ─── MULTI-SELECT CHECKBOXES ─── */
-.checkbox-grid{display:flex;flex-wrap:wrap;gap:4px;padding:6px 0}
-.checkbox-grid label{display:flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border:0.5px solid var(--border);border-radius:6px;cursor:pointer;transition:all .12s;background:var(--bg-primary)}
-.checkbox-grid label:hover{border-color:var(--accent)}
-.checkbox-grid label.checked{background:#EEEDFE;border-color:#AFA9EC;color:#3C3489;font-weight:600}
+.checkbox-grid{display:flex;flex-wrap:wrap;gap:5px;padding:6px 0}
+.checkbox-grid label{display:flex;align-items:center;gap:5px;font-size:11px;padding:5px 10px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s;background:var(--bg-primary);user-select:none;color:var(--text-secondary)}
+.checkbox-grid label:hover{border-color:var(--accent);background:var(--bg-secondary)}
+.checkbox-grid label.checked{background:#EEEDFE;border-color:#7F77DD;color:#3C3489;font-weight:600;box-shadow:0 0 0 1px #AFA9EC}
+.checkbox-grid label .cb-icon{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border-md);display:flex;align-items:center;justify-content:center;font-size:10px;transition:all .15s;flex-shrink:0;background:var(--bg-primary);color:transparent}
+.checkbox-grid label.checked .cb-icon{background:#7F77DD;border-color:#7F77DD;color:#fff}
 .checkbox-grid input{display:none}
-
+ 
 /* ─── DETAIL VIEW ─── */
 .detail-row{display:flex;gap:6px;padding:4px 0;border-bottom:0.5px solid var(--border)}
 .detail-key{font-size:10px;color:var(--text-secondary);width:110px;flex-shrink:0;padding-top:1px}
 .detail-val{font-size:12px;color:var(--text-primary);flex:1}
 .note-box{background:var(--bg-secondary);border-radius:var(--radius-md);padding:8px 10px;font-size:11px;color:var(--text-secondary);line-height:1.5;margin-top:8px}
-
+ 
 /* ─── EXCHANGE LOG ─── */
 .exchange-section{margin-top:12px;border-top:0.5px solid var(--border);padding-top:10px}
 .exchange-section h4{font-size:12px;font-weight:600;margin-bottom:8px;color:var(--text-primary);display:flex;align-items:center;gap:6px}
@@ -124,7 +126,7 @@ tr:hover td{background:var(--bg-secondary);cursor:pointer}
 .exchange-add{display:flex;gap:6px;align-items:flex-start;margin-top:6px}
 .exchange-add textarea{flex:1;padding:6px 8px;border:0.5px solid var(--border-md);border-radius:var(--radius-md);font-size:11px;font-family:inherit;min-height:48px;resize:vertical;color:var(--text-primary);background:var(--bg-primary)}
 .exchange-add select{width:120px;padding:6px;border:0.5px solid var(--border-md);border-radius:var(--radius-md);font-size:11px;font-family:inherit;flex-shrink:0}
-
+ 
 /* ─── BANNERS & MISC ─── */
 .sp-banner{border-radius:var(--radius-md);padding:8px 12px;margin-bottom:10px;font-size:11px;display:flex;align-items:center;gap:6px;line-height:1.5}
 .sp-banner.demo{background:#FAEEDA;border:0.5px solid #FAC775;color:#412402}
@@ -135,7 +137,7 @@ tr:hover td{background:var(--bg-secondary);cursor:pointer}
 .spinner{width:22px;height:22px;border:2px solid var(--border-md);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .empty-state{padding:30px;text-align:center;color:var(--text-secondary);font-size:12px}
-
+ 
 /* ─── ADMIN ─── */
 .admin-tabs{display:flex;border-bottom:0.5px solid var(--border);gap:0;overflow-x:auto}
 .admin-tab{padding:8px 12px;font-size:11px;cursor:pointer;color:var(--text-secondary);border:none;background:none;font-family:inherit;border-bottom:2px solid transparent;white-space:nowrap}
@@ -163,19 +165,12 @@ tr:hover td{background:var(--bg-secondary);cursor:pointer}
    CONFIG
    ═══════════════════════════════════════════════════════════════════ */
 const CONFIG = {
-  // Mode : 'demo' = données locales, 'gsheet' = Google Sheets partagé
-  mode: 'demo',
-  // ── Google Sheets ──
-  // ID du Google Sheet (la partie entre /d/ et /edit dans l'URL)
-  // Ex: https://docs.google.com/spreadsheets/d/ABC123/edit → ID = ABC123
-  sheetId: '',
-  // URL du Google Apps Script déployé en Web App (pour l'écriture)
-  // Voir le guide pour créer ce script en 2 minutes
-  scriptUrl: '',
-  // Clé API Google (gratuite, pour la lecture)
-  apiKey: ''
+  mode: 'gsheet',
+  sheetId: '1UsCs4Fr9uaFNlzTWbAudJILwLNtqEo0BrHkv_EZ0Sjc',
+  scriptUrl: 'https://script.google.com/macros/s/AKfycbyrF2NCBA9-sFGR6oEUaW2d8Rd3hwD_LUDt65Dsyo48KYsdqxJTEkS-uPUUFicIaqND8w/exec',
+  apiKey: 'AIzaSyD5uOj0zUYtrWvdBygPucyYcd_o13W53Yo'
 };
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    SCHOOLS
    ═══════════════════════════════════════════════════════════════════ */
@@ -217,14 +212,14 @@ const SCHOOLS_CONFIG = {
   gnomon:{name:"Gnomon",subtitle:"VFX & animation",filieres:{vfx:{label:"VFX",bg:"#FAECE7",color:"#993C1D",dot:"#D85A30"}}},
   artemis:{name:"Artemis Academie",subtitle:"Tendances & stylisme",filieres:{trends:{label:"Tendances",bg:"#FBEAF0",color:"#993556",dot:"#D4537E"}}}
 };
-
+ 
 let STATUSES = {
   partenaire:{label:"Partenaire",color:"#1D9E75",bg:"#E1F5EE",text:"#0F6E56"},
   chaud:{label:"Chaud",color:"#D85A30",bg:"#FAECE7",text:"#993C1D"},
   tiede:{label:"Tiède",color:"#EF9F27",bg:"#FAEEDA",text:"#854F0B"},
   froid:{label:"Froid",color:"#378ADD",bg:"#E6F1FB",text:"#185FA5"}
 };
-
+ 
 let TABLE_COLUMNS = [
   {key:"nom",label:"Entreprise",width:"16%",visible:true,system:true},
   {key:"ecoles",label:"Écoles",width:"14%",visible:true,system:true},
@@ -237,7 +232,7 @@ let TABLE_COLUMNS = [
   {key:"dernier_echange",label:"Dern. échange",width:"9%",visible:true,system:true},
   {key:"_actions",label:"",width:"8%",visible:true,system:true}
 ];
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    TEAM MEMBERS — alimenté par l'onglet Excel "Equipe" ou en local
    ═══════════════════════════════════════════════════════════════════ */
@@ -251,7 +246,7 @@ let TEAM_MEMBERS = [
   {nom:"Antoine Duval",ecole:"mopa",role:"Relations entreprises"},
   {nom:"Nathalie Simon",ecole:"efj",role:"Relations entreprises"},
 ];
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    DEMO DATA — structure unifiée (une entreprise = tags multi-écoles)
    ═══════════════════════════════════════════════════════════════════ */
@@ -267,7 +262,7 @@ const DEMO_COMPANIES = [
   {id:9,nom:"Studios de Bry",ville:"Bry-sur-Marne",lat:48.837,lng:2.525,filiere:"audiovisuel",statut:"chaud",contact:"Thomas Garcia",email:"tgarcia@studiosdebry.com",tel:"+33 1 48 82 00 00",offre:"Stage + Alternance",web:"",notes:"Montage, postproduction.",ecoles:["brassart","esec"],obtenu_par:"Thomas Martin",dernier_echange:"Thomas Martin",exchanges:[]},
   {id:10,nom:"Webedia",ville:"Levallois",lat:48.893,lng:2.283,filiere:"influence",statut:"chaud",contact:"Léa Martin",email:"lea@webedia.com",tel:"+33 1 47 58 00 00",offre:"Stage",web:"https://webedia.com",notes:"Influence et social media.",ecoles:["efap"],obtenu_par:"Léa Bernard",dernier_echange:"Léa Bernard",exchanges:[]},
 ];
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    STATE
    ═══════════════════════════════════════════════════════════════════ */
@@ -278,7 +273,7 @@ let editingId = null, detailId = null;
 let currentSchoolFilter = 'all'; // filter by school tag
 let curFiliere = 'all', curStatus = null, curTab = 'list';
 let mapInstance = null, mapMarkers = [];
-
+ 
 function FL() {
   if (currentSchoolFilter === 'all') {
     // Merge all school filieres
@@ -288,7 +283,7 @@ function FL() {
   }
   return SCHOOLS_CONFIG[currentSchoolFilter]?.filieres || {};
 }
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    INIT
    ═══════════════════════════════════════════════════════════════════ */
@@ -317,16 +312,16 @@ function init() {
     showBanner('demo','&#9888; Mode démo — données locales. Allez dans &#9881; Administration > Connexion pour activer Google Sheets.');
   }
 }
-
+ 
 function saveConfig() {
   try { localStorage.setItem('edh_crm_v3', JSON.stringify({companies, team:TEAM_MEMBERS, columns:TABLE_COLUMNS, statuses:STATUSES, schools:SCHOOLS_CONFIG, gsConfig:{mode:CONFIG.mode, sheetId:CONFIG.sheetId, scriptUrl:CONFIG.scriptUrl, apiKey:CONFIG.apiKey}})); } catch(e) {}
 }
-
+ 
 function buildSchoolSelector() {
   const opts = '<option value="all">Toutes les écoles</option>' + Object.entries(SCHOOLS_CONFIG).map(([k,v]) => `<option value="${k}">${v.name}</option>`).join('');
   document.getElementById('school-select').innerHTML = opts;
 }
-
+ 
 function switchSchool(code) {
   currentSchoolFilter = code;
   document.getElementById('school-select').value = code;
@@ -343,7 +338,7 @@ function switchSchool(code) {
   document.getElementById('view-title').textContent = title;
   renderAll();
 }
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    FILTER & RENDER
    ═══════════════════════════════════════════════════════════════════ */
@@ -358,9 +353,9 @@ function getFiltered() {
     return true;
   });
 }
-
+ 
 function renderAll() { renderStats(); renderTableHead(); renderTable(); if(curTab==='map')renderMapMarkers(); }
-
+ 
 function renderStats() {
   const a = getBaseSet();
   document.getElementById('stats-row').innerHTML = [
@@ -372,16 +367,16 @@ function renderStats() {
   const el0 = document.getElementById('cnt-all'); if(el0) el0.textContent = a.length;
   Object.keys(FL()).forEach(k => { const el=document.getElementById('cnt-'+k); if(el) el.textContent = a.filter(c=>c.filiere===k).length; });
 }
-
+ 
 function getBaseSet() {
   // Companies filtered only by school (not by filiere/status/search)
   return currentSchoolFilter === 'all' ? companies : companies.filter(c => (c.ecoles||[]).includes(currentSchoolFilter));
 }
-
+ 
 function renderTableHead() {
   document.getElementById('table-head').innerHTML = TABLE_COLUMNS.filter(c=>c.visible).map(c=>`<th style="width:${c.width}">${c.label}</th>`).join('');
 }
-
+ 
 function renderTable() {
   const rows = getFiltered(), b = document.getElementById('table-body'), vis = TABLE_COLUMNS.filter(c=>c.visible), fl = FL();
   if(!rows.length) { b.innerHTML = `<tr><td colspan="${vis.length}"><div class="empty-state">Aucune entreprise trouvée</div></td></tr>`; return; }
@@ -399,19 +394,19 @@ function renderTable() {
     return `<tr onclick="showDetail(${c.id})">${cells}</tr>`;
   }).join('');
 }
-
+ 
 /* ═══ MAP ═══ */
 function makeIcon(st){const c=STATUSES[st]?.color||'#999';return L.divIcon({html:`<svg xmlns='http://www.w3.org/2000/svg' width='24' height='32' viewBox='0 0 26 34'><path d='M13 0C5.82 0 0 5.82 0 13c0 9.75 13 21 13 21S26 22.75 26 13C26 5.82 20.18 0 13 0z' fill='${c}'/><circle cx='13' cy='13' r='5' fill='white' opacity='.9'/></svg>`,className:'',iconSize:[24,32],iconAnchor:[12,32],popupAnchor:[0,-34]});}
 function buildPopup(c){const fl=FL(),f=fl[c.filiere],s=STATUSES[c.statut];return `<div style="font-family:sans-serif;min-width:140px"><div style="font-size:12px;font-weight:700;margin-bottom:3px">${c.nom}</div><div style="font-size:10px;color:#666;margin-bottom:2px">${c.ville} — ${c.contact||''}</div><div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:3px">${(c.ecoles||[]).map(e=>`<span style="padding:1px 4px;border-radius:4px;font-size:8px;font-weight:700;background:#EEEDFE;color:#3C3489">${SCHOOLS_CONFIG[e]?.name||e}</span>`).join('')}</div><div style="display:flex;gap:3px">${f?`<span style="padding:1px 5px;border-radius:6px;font-size:9px;font-weight:700;background:${f.bg};color:${f.color}">${f.label}</span>`:''} ${s?`<span style="padding:1px 5px;border-radius:6px;font-size:9px;font-weight:700;background:${s.bg};color:${s.text}">${s.label}</span>`:''}</div></div>`;}
 function renderMapMarkers(){if(!mapInstance)return;mapMarkers.forEach(m=>mapInstance.removeLayer(m));mapMarkers=[];const f=getFiltered().filter(c=>c.lat&&c.lng);f.forEach(c=>{mapMarkers.push(L.marker([c.lat,c.lng],{icon:makeIcon(c.statut)}).addTo(mapInstance).bindPopup(buildPopup(c),{maxWidth:220}));});if(f.length)mapInstance.fitBounds(f.map(c=>[c.lat,c.lng]),{padding:[40,40],maxZoom:12});}
 function initMap(){if(mapInstance)return;mapInstance=L.map('map').setView([46.5,2.5],5);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:18}).addTo(mapInstance);renderMapMarkers();}
-
+ 
 /* ═══ NAV ═══ */
 function switchTab(tab){curTab=tab;document.getElementById('view-list').classList.toggle('active',tab==='list');document.getElementById('view-map').classList.toggle('active',tab==='map');document.getElementById('tab-list').classList.toggle('active',tab==='list');document.getElementById('tab-map').classList.toggle('active',tab==='map');if(tab==='map')setTimeout(()=>{initMap();mapInstance&&mapInstance.invalidateSize();renderMapMarkers();},50);}
 function setFiliere(f){curFiliere=f;curStatus=null;document.querySelectorAll('.nav-item[data-f]').forEach(el=>el.classList.toggle('active',el.dataset.f===f));document.querySelectorAll('.nav-item[data-s]').forEach(el=>el.classList.remove('active'));renderAll();}
 function setStatus(s){curStatus=curStatus===s?null:s;curFiliere='all';document.querySelectorAll('.nav-item[data-f]').forEach(el=>el.classList.toggle('active',el.dataset.f==='all'));document.querySelectorAll('.nav-item[data-s]').forEach(el=>el.classList.toggle('active',el.dataset.s===s&&curStatus===s));renderAll();}
 function onSearch(){renderAll();}
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    TEAM MEMBER DROPDOWN BUILDER
    ═══════════════════════════════════════════════════════════════════ */
@@ -420,21 +415,46 @@ function teamOptions(selected) {
     `<option value="${m.nom}" ${m.nom===selected?'selected':''}>${m.nom} (${SCHOOLS_CONFIG[m.ecole]?.name||m.ecole})</option>`
   ).join('');
 }
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    SCHOOL CHECKBOX BUILDER
    ═══════════════════════════════════════════════════════════════════ */
 function schoolCheckboxes(selected) {
   const sel = selected || [];
   return Object.entries(SCHOOLS_CONFIG).map(([k,v]) =>
-    `<label class="${sel.includes(k)?'checked':''}" onclick="this.classList.toggle('checked')"><input type="checkbox" name="f-ecoles" value="${k}" ${sel.includes(k)?'checked':''}>${v.name}</label>`
+    `<label class="${sel.includes(k)?'checked':''}" onclick="toggleSchoolCb(this)"><span class="cb-icon">&#10003;</span><input type="checkbox" name="f-ecoles" value="${k}" ${sel.includes(k)?'checked':''}>${v.name}</label>`
   ).join('');
 }
-
+ 
+function toggleSchoolCb(label) {
+  const cb = label.querySelector('input');
+  cb.checked = !cb.checked;
+  label.classList.toggle('checked', cb.checked);
+  updateFilieresFromSchools();
+}
+ 
+function updateFilieresFromSchools() {
+  const checked = getCheckedSchools();
+  const filieres = {};
+  checked.forEach(code => {
+    const school = SCHOOLS_CONFIG[code];
+    if (school) Object.assign(filieres, school.filieres);
+  });
+  // Si aucune école cochée, montrer toutes les filières
+  if (Object.keys(filieres).length === 0) {
+    Object.values(SCHOOLS_CONFIG).forEach(s => Object.assign(filieres, s.filieres));
+  }
+  const sel = document.getElementById('f-filiere');
+  const prev = sel.value;
+  sel.innerHTML = Object.entries(filieres).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
+  // Garder la sélection précédente si elle existe encore
+  if (filieres[prev]) sel.value = prev;
+}
+ 
 function getCheckedSchools() {
   return [...document.querySelectorAll('input[name="f-ecoles"]:checked')].map(cb => cb.value);
 }
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    CRUD
    ═══════════════════════════════════════════════════════════════════ */
@@ -444,17 +464,14 @@ function openAddModal() {
   document.getElementById('btn-del-form').style.display = 'none';
   ['nom','ville','contact','email','tel','web','notes'].forEach(f => document.getElementById('f-'+f).value = '');
   document.getElementById('f-lat').value=''; document.getElementById('f-lng').value='';
-  // Build filiere from all schools
-  const allFl = {}; Object.values(SCHOOLS_CONFIG).forEach(s => Object.assign(allFl, s.filieres));
-  document.getElementById('f-filiere').innerHTML = Object.entries(allFl).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
-  document.getElementById('f-filiere').value = Object.keys(allFl)[0]||'';
   document.getElementById('f-statut').value='froid';
   document.getElementById('f-offre').value='';
   document.getElementById('f-obtenu').innerHTML = teamOptions('');
   document.getElementById('f-ecoles-grid').innerHTML = schoolCheckboxes(currentSchoolFilter!=='all'?[currentSchoolFilter]:[]);
+  updateFilieresFromSchools();
   document.getElementById('form-modal').classList.add('open');
 }
-
+ 
 function openEditModal(id) {
   const c = companies.find(x=>x.id===id); if(!c) return;
   editingId = id;
@@ -462,8 +479,8 @@ function openEditModal(id) {
   document.getElementById('btn-del-form').style.display = 'block';
   document.getElementById('f-nom').value=c.nom;
   document.getElementById('f-ville').value=c.ville;
-  const allFl = {}; Object.values(SCHOOLS_CONFIG).forEach(s => Object.assign(allFl, s.filieres));
-  document.getElementById('f-filiere').innerHTML = Object.entries(allFl).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
+  document.getElementById('f-ecoles-grid').innerHTML = schoolCheckboxes(c.ecoles||[]);
+  updateFilieresFromSchools();
   document.getElementById('f-filiere').value=c.filiere;
   document.getElementById('f-statut').value=c.statut;
   document.getElementById('f-contact').value=c.contact||'';
@@ -475,10 +492,9 @@ function openEditModal(id) {
   document.getElementById('f-lng').value=c.lng||'';
   document.getElementById('f-notes').value=c.notes||'';
   document.getElementById('f-obtenu').innerHTML = teamOptions(c.obtenu_par||'');
-  document.getElementById('f-ecoles-grid').innerHTML = schoolCheckboxes(c.ecoles||[]);
   document.getElementById('form-modal').classList.add('open');
 }
-
+ 
 function saveCompany() {
   const nom=document.getElementById('f-nom').value.trim(), ville=document.getElementById('f-ville').value.trim();
   if(!nom||!ville){showBanner('error','&#9888; Nom et ville obligatoires.');return;}
@@ -509,12 +525,12 @@ function saveCompany() {
   }
   renderAll(); saveConfig();
 }
-
+ 
 function confirmDelete(id){const c=companies.find(x=>x.id===id);if(!c)return;if(!confirm(`Supprimer "${c.nom}" ?`))return;if(CONFIG.mode==='gsheet')gsDeleteEntreprise(id);companies=companies.filter(c=>c.id!==id);renderAll();saveConfig();}
 function deleteFromForm(){if(!editingId)return;closeModal('form-modal');confirmDelete(editingId);}
 function deleteFromDetail(){if(!detailId)return;closeModal('detail-modal');confirmDelete(detailId);}
 function editFromDetail(){closeModal('detail-modal');openEditModal(detailId);}
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    DETAIL VIEW WITH EXCHANGE LOG
    ═══════════════════════════════════════════════════════════════════ */
@@ -566,7 +582,7 @@ function showDetail(id) {
   `;
   document.getElementById('detail-modal').classList.add('open');
 }
-
+ 
 function addExchange(companyId) {
   const text = document.getElementById('new-exchange-text').value.trim();
   const who = document.getElementById('new-exchange-who').value;
@@ -586,7 +602,7 @@ function addExchange(companyId) {
   saveConfig(); renderAll();
   showDetail(companyId); // refresh detail view
 }
-
+ 
 function deleteExchange(companyId, exchangeId) {
   const c = companies.find(x=>x.id===companyId);
   if (!c || !c.exchanges) return;
@@ -599,28 +615,28 @@ function deleteExchange(companyId, exchangeId) {
   saveConfig(); renderAll();
   showDetail(companyId);
 }
-
+ 
 function formatDate(d) {
   if (!d) return '—';
   const parts = d.split('-');
   if (parts.length===3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
   return d;
 }
-
+ 
 /* ═══ UI ═══ */
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function showBanner(type,msg){const w=document.getElementById('sp-banner-wrap');w.innerHTML=`<div class="sp-banner ${type}">${msg}</div>`;if(type==='success')setTimeout(()=>{w.innerHTML='';},3000);}
 function showLoading(on){let el=document.getElementById('loading-overlay');if(on){if(!el){el=document.createElement('div');el.id='loading-overlay';el.className='loading-overlay';el.innerHTML='<div class="spinner"></div>';document.getElementById('app').appendChild(el);}}else{if(el)el.remove();}}
-
+ 
 /* ═══ EXPORT ═══ */
 function exportCSV(){const fl=FL(),rows=getFiltered(),h=['Nom','Ville','Écoles','Filière','Statut','Contact','Email','Téléphone','Offre','Obtenu par','Dern. échange','Notes'],csv=[h.join(';')].concat(rows.map(c=>[c.nom,c.ville,(c.ecoles||[]).map(e=>SCHOOLS_CONFIG[e]?.name||e).join('+'),fl[c.filiere]?.label||c.filiere,STATUSES[c.statut]?.label||c.statut,c.contact,c.email,c.tel,c.offre,c.obtenu_par,c.dernier_echange,c.notes].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(';'))).join('\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`crm_edh_${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(url);}
 function exportAll(){const data=JSON.stringify({companies,team:TEAM_MEMBERS,columns:TABLE_COLUMNS,statuses:STATUSES,schools:SCHOOLS_CONFIG},null,2);const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`edh_crm_backup_${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url);}
 function importAll(event){const file=event.target.files[0];if(!file)return;const r=new FileReader();r.onload=e=>{try{const cfg=JSON.parse(e.target.result);if(cfg.companies)companies=cfg.companies;if(cfg.team)TEAM_MEMBERS=cfg.team;if(cfg.columns)TABLE_COLUMNS.splice(0,TABLE_COLUMNS.length,...cfg.columns);if(cfg.statuses)Object.assign(STATUSES,cfg.statuses);if(cfg.schools)Object.keys(cfg.schools).forEach(k=>{if(!SCHOOLS_CONFIG[k])SCHOOLS_CONFIG[k]=cfg.schools[k];});saveConfig();buildSchoolSelector();switchSchool('all');showBanner('success','&#10003; Import réussi !');}catch(err){showBanner('error','&#9888; JSON invalide: '+err.message);}};r.readAsText(file);event.target.value='';}
-
+ 
 /* ═══ ADMIN ═══ */
 function openAdmin(){document.getElementById('admin-modal').classList.add('open');renderAdminTeam();renderAdminCols();renderAdminEcoles();renderAdminFilieres();}
 function switchAdminTab(tab){document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.admin-section').forEach(s=>s.classList.remove('active'));event.target.classList.add('active');const el=document.getElementById('admin-'+tab);if(el)el.classList.add('active');}
-
+ 
 function renderAdminTeam(){
   document.getElementById('admin-team-list').innerHTML = TEAM_MEMBERS.map((m,i) => `
     <div class="item-row">
@@ -632,7 +648,7 @@ function renderAdminTeam(){
     </div>
   `).join('');
 }
-
+ 
 function addTeamMember(){
   const nom=document.getElementById('new-member-name').value.trim();
   const ecole=document.getElementById('new-member-school').value;
@@ -643,27 +659,27 @@ function addTeamMember(){
   document.getElementById('new-member-role').value='';
   renderAdminTeam(); saveConfig();
 }
-
+ 
 function renderAdminFilieres(){
   const schoolCode = document.getElementById('admin-filiere-school')?.value || 'brassart';
   document.getElementById('admin-filieres-list').innerHTML = Object.entries(SCHOOLS_CONFIG[schoolCode]?.filieres||{}).map(([k,v])=>`<div class="item-row"><span class="dot" style="background:${v.dot}"></span><span>${v.label}</span><span class="code">${k}</span><input type="color" value="${v.dot}" class="color-input" onchange="SCHOOLS_CONFIG['${schoolCode}'].filieres['${k}'].dot=this.value;SCHOOLS_CONFIG['${schoolCode}'].filieres['${k}'].color=this.value;SCHOOLS_CONFIG['${schoolCode}'].filieres['${k}'].bg=this.value+'20';saveConfig()"><button class="btn btn-sm btn-danger" onclick="delete SCHOOLS_CONFIG['${schoolCode}'].filieres['${k}'];renderAdminFilieres();saveConfig()">×</button></div>`).join('');
 }
-
+ 
 function addFiliere(){const schoolCode=document.getElementById('admin-filiere-school').value;const code=document.getElementById('new-filiere-code').value.trim().toLowerCase().replace(/[^a-z0-9]/g,'');const label=document.getElementById('new-filiere-label').value.trim();const color=document.getElementById('new-filiere-color').value;if(!code||!label)return;SCHOOLS_CONFIG[schoolCode].filieres[code]={label,bg:color+'20',color,dot:color};document.getElementById('new-filiere-code').value='';document.getElementById('new-filiere-label').value='';renderAdminFilieres();saveConfig();}
-
+ 
 function renderAdminCols(){document.getElementById('admin-cols-list').innerHTML=TABLE_COLUMNS.map((c,i)=>`<div class="col-vis-row"><label><input type="checkbox" ${c.visible?'checked':''} onchange="TABLE_COLUMNS[${i}].visible=this.checked;renderAll();renderAdminCols();saveConfig()"> ${c.label||c.key}</label><span class="code" style="font-size:9px">${c.key}</span>${!c.system?`<button class="btn btn-sm btn-danger" onclick="TABLE_COLUMNS.splice(${i},1);renderAll();renderAdminCols();saveConfig()">×</button>`:''}</div>`).join('');}
 function addColumn(){const key=document.getElementById('new-col-key').value.trim().toLowerCase().replace(/[^a-z0-9_]/g,''),label=document.getElementById('new-col-label').value.trim();if(!key||!label)return;TABLE_COLUMNS.splice(TABLE_COLUMNS.length-1,0,{key,label,width:'10%',visible:true,system:false});document.getElementById('new-col-key').value='';document.getElementById('new-col-label').value='';renderAdminCols();renderAll();saveConfig();}
-
+ 
 function renderAdminEcoles(){document.getElementById('admin-ecoles-list').innerHTML=Object.entries(SCHOOLS_CONFIG).map(([k,v])=>`<div class="item-row"><span class="dot" style="background:var(--accent)"></span><span>${v.name}</span><span class="code">${k}</span><span class="code" style="font-size:9px">${Object.keys(v.filieres).length} fil.</span></div>`).join('');}
 function addSchool(){const code=document.getElementById('new-school-code').value.trim().toLowerCase().replace(/[^a-z0-9]/g,''),name=document.getElementById('new-school-name').value.trim(),sub=document.getElementById('new-school-sub').value.trim();if(!code||!name)return;SCHOOLS_CONFIG[code]={name,subtitle:sub||name,filieres:{general:{label:'Général',bg:'#E6F1FB',color:'#185FA5',dot:'#378ADD'}}};document.getElementById('new-school-code').value='';document.getElementById('new-school-name').value='';document.getElementById('new-school-sub').value='';buildSchoolSelector();renderAdminEcoles();saveConfig();}
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    GOOGLE SHEETS API
    - Lecture : via Google Sheets API v4 (clé API publique)
    - Écriture : via Google Apps Script déployé en Web App
    - 3 onglets dans le Sheet : Entreprises, Echanges, Equipe
    ═══════════════════════════════════════════════════════════════════ */
-
+ 
 // ── LECTURE d'un onglet entier ──
 async function gsRead(sheetName) {
   if (!CONFIG.sheetId || !CONFIG.apiKey) return null;
@@ -682,7 +698,7 @@ async function gsRead(sheetName) {
     });
   } catch(e) { console.error('Lecture Google Sheet:', e); return null; }
 }
-
+ 
 // ── ÉCRITURE via Apps Script Web App ──
 async function gsWrite(action, data) {
   if (!CONFIG.scriptUrl) return false;
@@ -708,7 +724,7 @@ async function gsWrite(action, data) {
     });
   } catch(e) { console.error('Écriture Google Sheet:', e); return false; }
 }
-
+ 
 // ── LIRE les entreprises ──
 async function gsReadEntreprises() {
   const rows = await gsRead('Entreprises');
@@ -733,7 +749,7 @@ async function gsReadEntreprises() {
     exchanges: []
   })).filter(c => c.nom);
 }
-
+ 
 // ── LIRE les échanges ──
 async function gsReadEchanges() {
   const rows = await gsRead('Echanges');
@@ -746,7 +762,7 @@ async function gsReadEchanges() {
     resume: r.resume || ''
   }));
 }
-
+ 
 // ── LIRE l'équipe ──
 async function gsReadEquipe() {
   const rows = await gsRead('Equipe');
@@ -758,14 +774,14 @@ async function gsReadEquipe() {
     email: r.email || ''
   })).filter(m => m.nom);
 }
-
+ 
 // ── ÉCRIRE une entreprise ──
 async function gsCreateEntreprise(c) {
   return gsWrite('addEntreprise', {
     row: [c.id, c.nom, c.ville, c.filiere, c.statut, c.contact, c.email, c.tel, c.offre, c.web || '', c.lat || '', c.lng || '', c.notes, (c.ecoles || []).join(','), c.obtenu_par || '', c.dernier_echange || '', new Date().toISOString().slice(0, 10)]
   });
 }
-
+ 
 // ── MODIFIER une entreprise ──
 async function gsUpdateEntreprise(id, c) {
   return gsWrite('updateEntreprise', {
@@ -773,19 +789,19 @@ async function gsUpdateEntreprise(id, c) {
     row: [id, c.nom, c.ville, c.filiere, c.statut, c.contact, c.email, c.tel, c.offre, c.web || '', c.lat || '', c.lng || '', c.notes, (c.ecoles || []).join(','), c.obtenu_par || '', c.dernier_echange || '', new Date().toISOString().slice(0, 10)]
   });
 }
-
+ 
 // ── SUPPRIMER une entreprise ──
 async function gsDeleteEntreprise(id) {
   return gsWrite('deleteEntreprise', { id: id });
 }
-
+ 
 // ── AJOUTER un échange ──
 async function gsCreateEchange(ex) {
   return gsWrite('addEchange', {
     row: [ex.id, ex.entrepriseId, ex.date, ex.auteur, ex.resume]
   });
 }
-
+ 
 // ── SYNC COMPLET ──
 async function syncData() {
   if (CONFIG.mode === 'demo') {
@@ -802,7 +818,7 @@ async function syncData() {
     const ent = await gsReadEntreprises();
     const exch = await gsReadEchanges();
     const team = await gsReadEquipe();
-
+ 
     if (ent !== null) {
       ent.forEach(c => {
         c.exchanges = exch.filter(e => e.entrepriseId === c.id).map(e => ({
@@ -814,7 +830,7 @@ async function syncData() {
     if (team !== null && team.length > 0) {
       TEAM_MEMBERS = team;
     }
-
+ 
     saveConfig();
     renderAll();
     showBanner('success', `&#10003; Synchronisé ! ${companies.length} entreprises, ${exch.length} échanges, ${TEAM_MEMBERS.length} membres.`);
@@ -826,7 +842,7 @@ async function syncData() {
 }
 /* init() is called after DOM is ready — see end of file */
 </script>
-
+ 
 <!-- ═══════════════════════════════════════════════════════════════════
      HTML STRUCTURE
      ═══════════════════════════════════════════════════════════════════ -->
@@ -860,7 +876,7 @@ async function syncData() {
     <div class="view-map" id="view-map"><div id="map"></div><div class="map-legend"><div class="leg-item"><div class="leg-dot" style="background:#1D9E75"></div>Partenaire</div><div class="leg-item"><div class="leg-dot" style="background:#D85A30"></div>Chaud</div><div class="leg-item"><div class="leg-dot" style="background:#EF9F27"></div>Tiède</div><div class="leg-item"><div class="leg-dot" style="background:#378ADD"></div>Froid</div></div></div>
   </div>
 </div>
-
+ 
 <!-- FORM MODAL -->
 <div class="modal-bg" id="form-modal">
   <div class="modal">
@@ -882,7 +898,7 @@ async function syncData() {
     </div>
   </div>
 </div>
-
+ 
 <!-- DETAIL MODAL -->
 <div class="modal-bg" id="detail-modal">
   <div class="modal" style="width:580px">
@@ -895,7 +911,7 @@ async function syncData() {
     </div>
   </div>
 </div>
-
+ 
 <!-- ADMIN MODAL -->
 <div class="modal-bg" id="admin-modal">
   <div class="modal" style="width:640px">
@@ -908,7 +924,7 @@ async function syncData() {
       <button class="admin-tab" onclick="switchAdminTab('connexion')">Connexion</button>
       <button class="admin-tab" onclick="switchAdminTab('export')">Import/Export</button>
     </div>
-
+ 
     <div class="admin-section active" id="admin-equipe">
       <div class="config-card"><h4>Membres de l'équipe</h4><p>Liste des collaborateurs qui apparaissent dans les listes déroulantes "Obtenu par" et "Dernier échange". Alimenté depuis l'onglet Excel "Equipe" en mode connecté.</p></div>
       <div id="admin-team-list"></div>
@@ -919,7 +935,7 @@ async function syncData() {
         <button class="btn btn-primary btn-sm" onclick="addTeamMember()">+</button>
       </div>
     </div>
-
+ 
     <div class="admin-section" id="admin-filieres">
       <div class="config-card"><h4>Filières par école</h4><p>Gérez les filières de chaque école.</p></div>
       <div class="fg"><label class="fl">École</label><select id="admin-filiere-school" onchange="renderAdminFilieres()" style="width:100%;padding:6px 8px;border:0.5px solid var(--border-md);border-radius:var(--radius-md);font-size:12px"></select></div>
@@ -931,7 +947,7 @@ async function syncData() {
         <button class="btn btn-primary btn-sm" onclick="addFiliere()">+</button>
       </div>
     </div>
-
+ 
     <div class="admin-section" id="admin-colonnes">
       <div class="config-card"><h4>Colonnes du tableau</h4><p>Activez/désactivez, ajoutez des colonnes personnalisées.</p></div>
       <div id="admin-cols-list"></div>
@@ -941,7 +957,7 @@ async function syncData() {
         <button class="btn btn-primary btn-sm" onclick="addColumn()">+</button>
       </div>
     </div>
-
+ 
     <div class="admin-section" id="admin-ecoles">
       <div class="config-card"><h4>Écoles du groupe</h4><p>Ajoutez une nouvelle école.</p></div>
       <div id="admin-ecoles-list"></div>
@@ -949,7 +965,7 @@ async function syncData() {
       <div class="fg"><label class="fl">Sous-titre</label><input id="new-school-sub" placeholder="Spécialité"></div>
       <button class="btn btn-primary btn-sm" onclick="addSchool()">Ajouter</button>
     </div>
-
+ 
     <div class="admin-section" id="admin-connexion">
       <div id="gs-conn-status" style="margin-bottom:10px"></div>
       <div class="config-card"><h4>Connexion Google Sheets</h4><p>Le CRM lit et écrit dans un Google Sheet partagé. Toute votre équipe voit les mêmes données. Le Google Sheet reste modifiable directement comme un Excel en ligne.</p></div>
@@ -957,12 +973,12 @@ async function syncData() {
       <div class="fg"><label class="fl">ID du Google Sheet</label><input id="cfg-sheet-id" placeholder="Copiez la partie entre /d/ et /edit de l'URL du Sheet"></div>
       <div class="fg"><label class="fl">Clé API Google (pour la lecture)</label><input id="cfg-api-key" placeholder="AIzaSy..."></div>
       <div class="fg"><label class="fl">URL du script Google Apps Script (pour l'écriture)</label><input id="cfg-script-url" placeholder="https://script.google.com/macros/s/.../exec"></div>
-
+ 
       <div style="display:flex;gap:6px;margin-top:10px">
         <button class="btn btn-primary" onclick="activateGSheet()">Activer Google Sheets</button>
         <button class="btn" onclick="activateDemo()">Repasser en démo</button>
       </div>
-
+ 
       <div class="config-card" style="margin-top:12px">
         <h4>Guide de configuration (5 minutes)</h4>
         <p><strong>1.</strong> Créez un Google Sheet avec 3 onglets : <strong>Entreprises</strong>, <strong>Echanges</strong>, <strong>Equipe</strong><br>
@@ -973,7 +989,7 @@ async function syncData() {
         <strong>6.</strong> Collez les 3 infos ci-dessus et cliquez "Activer"</p>
       </div>
     </div>
-
+ 
     <div class="admin-section" id="admin-export">
       <div class="config-card"><h4>Import / Export</h4><p>Sauvegardez ou restaurez config + données en JSON.</p></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
@@ -985,12 +1001,12 @@ async function syncData() {
     </div>
   </div>
 </div>
-
+ 
 <script>
 /* ═══ BOOT — DOM is now ready ═══ */
 document.getElementById('new-member-school').innerHTML = Object.entries(SCHOOLS_CONFIG).map(([k,v])=>`<option value="${k}">${v.name}</option>`).join('');
 document.getElementById('admin-filiere-school').innerHTML = Object.entries(SCHOOLS_CONFIG).map(([k,v])=>`<option value="${k}">${v.name}</option>`).join('');
-
+ 
 function activateGSheet() {
   CONFIG.sheetId = document.getElementById('cfg-sheet-id').value.trim();
   CONFIG.apiKey = document.getElementById('cfg-api-key').value.trim();
@@ -1004,14 +1020,14 @@ function activateGSheet() {
   showBanner('info','&#8987; Connexion à Google Sheets...');
   syncData().then(() => { updateConnStatus(); });
 }
-
+ 
 function activateDemo() {
   CONFIG.mode = 'demo';
   saveConfig();
   showBanner('demo','&#9888; Mode démo activé — données locales uniquement.');
   updateConnStatus();
 }
-
+ 
 function updateConnStatus() {
   const el = document.getElementById('gs-conn-status');
   if (!el) return;
@@ -1021,15 +1037,16 @@ function updateConnStatus() {
     el.innerHTML = '<div style="padding:8px 12px;border-radius:8px;font-size:11px;background:#FAEEDA;border:0.5px solid #FAC775;color:#412402;display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#EF9F27;flex-shrink:0"></span>Mode démo — données dans le navigateur uniquement</div>';
   }
 }
-
+ 
 // Populate fields from saved config
 document.getElementById('cfg-sheet-id').value = CONFIG.sheetId || '';
 document.getElementById('cfg-api-key').value = CONFIG.apiKey || '';
 document.getElementById('cfg-script-url').value = CONFIG.scriptUrl || '';
-
+ 
 init();
 updateConnStatus();
 </script>
-
+ 
 </body>
 </html>
+ 
