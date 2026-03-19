@@ -511,7 +511,7 @@ function getFiltered() {
     // School filter
     if (currentSchoolFilter !== 'all' && !(c.ecoles || []).includes(currentSchoolFilter)) return false;
     // Filiere filter
-    if (curFiliere !== 'all' && c.filiere !== curFiliere) return false;
+    if (curFiliere !== 'all' && !(c.filiere||'').split(',').map(s=>s.trim()).includes(curFiliere)) return false;
     // Status filter
     if (curStatus && c.statut !== curStatus) return false;
     // Search
@@ -700,7 +700,7 @@ function populateFilterDropdowns() {
   });
 }
 
-function renderAll() { populateFilterDropdowns(); renderStats(); renderTableHead(); renderTable(); if(curTab==='map')renderMapMarkers(); }
+function renderAll() { populateFilterDropdowns(); renderStats(); renderTableHead(); renderTable(); if(curTab==='map')renderMapMarkers(); if(curTab==='kanban')renderKanban(); if(curTab==='dashboard')renderDashboard(); }
 
 function renderStats() {
   const a = getBaseSet();
@@ -711,7 +711,7 @@ function renderStats() {
   ].map(s=>`<div class="stat-card"><div class="stat-label">${s.l}</div><div class="stat-val">${s.v}</div></div>`).join('');
   
   const el0 = document.getElementById('cnt-all'); if(el0) el0.textContent = a.length;
-  Object.keys(FL()).forEach(k => { const el=document.getElementById('cnt-'+k); if(el) el.textContent = a.filter(c=>c.filiere===k).length; });
+  Object.keys(FL()).forEach(k => { const el=document.getElementById('cnt-'+k); if(el) el.textContent = a.filter(c=>(c.filiere||'').split(',').map(s=>s.trim()).includes(k)).length; });
 }
 
 function getBaseSet() {
@@ -736,7 +736,7 @@ function renderTable() {
     const cells = vis.map(col => {
       if(col.key==='nom') return `<td style="font-weight:600">${c.nom}</td>`;
       if(col.key==='ecoles') return `<td><div class="school-tags-cell">${(c.ecoles||[]).map(e => `<span class="school-tag">${SCHOOLS_CONFIG[e]?.name||e}</span>`).join('')}</div></td>`;
-      if(col.key==='filiere'){const f=fl[c.filiere]; return f?`<td><span class="ftag" style="background:${f.bg};color:${f.color}">${f.label}</span></td>`:`<td>${c.filiere||'—'}</td>`;}
+      if(col.key==='filiere'){const fils=(c.filiere||'').split(',').map(k=>k.trim()).filter(Boolean);return `<td><div style="display:flex;flex-wrap:wrap;gap:2px">${fils.map(k=>{const f=fl[k];return f?`<span class="ftag" style="background:${f.bg};color:${f.color}">${f.label}</span>`:`<span class="ftag" style="background:#f0f0f0;color:#666">${k}</span>`;}).join('')||'—'}</div></td>`;}
       if(col.key==='statut'){const s=STATUSES[c.statut]; return s?`<td><span class="badge" style="background:${s.bg};color:${s.text}">${s.label}</span></td>`:`<td>${c.statut}</td>`;}
       if(col.key==='obtenu_par') return `<td style="font-size:10px;color:var(--text-secondary)">${c.obtenu_par||'—'}</td>`;
       if(col.key==='dernier_echange') return `<td style="font-size:10px;color:var(--text-secondary)">${c.dernier_echange||'—'}</td>`;
@@ -821,10 +821,12 @@ function toggleSchoolCb(label) {
   const cb = label.querySelector('input');
   cb.checked = !cb.checked;
   label.classList.toggle('checked', cb.checked);
-  updateFilieresFromSchools();
+  // Preserve currently selected filieres when rebuilding
+  const currentFilieres = getCheckedFilieres();
+  updateFilieresFromSchools(currentFilieres);
 }
 
-function updateFilieresFromSchools() {
+function updateFilieresFromSchools(selectedFilieres) {
   const checked = getCheckedSchools();
   const filieres = {};
   checked.forEach(code => {
@@ -835,11 +837,20 @@ function updateFilieresFromSchools() {
   if (Object.keys(filieres).length === 0) {
     Object.values(SCHOOLS_CONFIG).forEach(s => Object.assign(filieres, s.filieres));
   }
-  const sel = document.getElementById('f-filiere');
-  const prev = sel.value;
-  sel.innerHTML = Object.entries(filieres).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
-  // Garder la sélection précédente si elle existe encore
-  if (filieres[prev]) sel.value = prev;
+  const sel = selectedFilieres || [];
+  document.getElementById('f-filiere-grid').innerHTML = Object.entries(filieres).map(([k,v]) =>
+    `<label class="${sel.includes(k)?'checked':''}" onclick="toggleFiliereCb(this)"><span class="cb-icon">&#10003;</span><input type="checkbox" name="f-filieres" value="${k}" ${sel.includes(k)?'checked':''}>${v.label}</label>`
+  ).join('');
+}
+
+function toggleFiliereCb(label) {
+  const cb = label.querySelector('input');
+  cb.checked = !cb.checked;
+  label.classList.toggle('checked', cb.checked);
+}
+
+function getCheckedFilieres() {
+  return [...document.querySelectorAll('input[name="f-filieres"]:checked')].map(cb => cb.value);
 }
 
 function getCheckedSchools() {
@@ -859,7 +870,7 @@ function openAddModal() {
   document.getElementById('f-offre-grid').innerHTML = offreCheckboxes('');
   document.getElementById('f-obtenu').innerHTML = teamOptions('');
   document.getElementById('f-ecoles-grid').innerHTML = schoolCheckboxes(currentSchoolFilter!=='all'?[currentSchoolFilter]:[]);
-  updateFilieresFromSchools();
+  updateFilieresFromSchools([]);
   document.getElementById('form-modal').classList.add('open');
 }
 
@@ -873,8 +884,8 @@ function openEditModal(id) {
   document.getElementById('f-adresse').value=c.adresse||'';
   document.getElementById('f-ville').value=c.ville;
   document.getElementById('f-ecoles-grid').innerHTML = schoolCheckboxes(c.ecoles||[]);
-  updateFilieresFromSchools();
-  document.getElementById('f-filiere').value=c.filiere;
+  const filArray = (c.filiere||'').split(',').map(s=>s.trim()).filter(Boolean);
+  updateFilieresFromSchools(filArray);
   document.getElementById('f-statut').value=c.statut;
   document.getElementById('f-contact').value=c.contact||'';
   document.getElementById('f-email').value=c.email||'';
@@ -896,7 +907,7 @@ function saveCompany() {
   const data = {
     nom, ville, siret:document.getElementById('f-siret').value.trim(),
     adresse:document.getElementById('f-adresse').value.trim(),
-    filiere:document.getElementById('f-filiere').value,
+    filiere:getCheckedFilieres().join(','),
     statut:document.getElementById('f-statut').value,
     contact:document.getElementById('f-contact').value.trim()||'—',
     email:document.getElementById('f-email').value.trim(),
@@ -947,13 +958,15 @@ function showDetail(id) {
   
   // Offre tags
   const offreTags = (c.offre||'').split(',').map(o=>o.trim()).filter(Boolean);
+  // Filiere tags
+  const filTags = (c.filiere||'').split(',').map(k=>k.trim()).filter(Boolean);
   
   document.getElementById('det-name').innerHTML = `${logoUrl?`<img src="${logoUrl}" style="width:22px;height:22px;border-radius:4px;margin-right:8px;vertical-align:middle" onerror="this.style.display='none'">`:''}${c.nom}`;
   
   document.getElementById('det-body').innerHTML = `
     <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px">
       ${s?`<span class="badge" style="background:${s.bg};color:${s.text}">${s.label}</span>`:''}
-      ${f?`<span class="ftag" style="background:${f.bg};color:${f.color}">${f.label}</span>`:''}
+      ${filTags.map(k=>{const f=fl[k];return f?`<span class="ftag" style="background:${f.bg};color:${f.color}">${f.label}</span>`:`<span class="ftag" style="background:#f0f0f0;color:#666">${k}</span>`;}).join('')}
       ${(c.ecoles||[]).map(e=>`<span class="school-tag">${SCHOOLS_CONFIG[e]?.name||e}</span>`).join('')}
     </div>
     ${offreTags.length?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px">${offreTags.map(o=>`<span style="padding:2px 8px;border-radius:6px;font-size:9px;font-weight:600;background:#E6F1FB;color:#185FA5">${o}</span>`).join('')}</div>`:''}
@@ -1275,11 +1288,11 @@ function renderKanban() {
     return `<div class="kanban-col">
       <div class="kanban-header"><h4 style="color:${colors[st]}">${s?.label||st}</h4><span class="kcount">${items.length}</span></div>
       <div class="kanban-body">${items.map(c => {
-        const f = fl[c.filiere];
+        const fTags = (c.filiere||'').split(',').map(k=>k.trim()).filter(Boolean).map(k=>{const fv=fl[k];return fv?`<span class="ftag" style="background:${fv.bg};color:${fv.color}">${fv.label}</span>`:''}).join('');
         return `<div class="kanban-card" onclick="showDetail(${c.id})">
           <h5>${c.nom}</h5>
           <div class="k-ville">${c.ville}${c.contact&&c.contact!=='—'?' — '+c.contact:''}</div>
-          <div class="k-tags">${(c.ecoles||[]).map(e=>`<span class="school-tag">${SCHOOLS_CONFIG[e]?.name||e}</span>`).join('')}${f?`<span class="ftag" style="background:${f.bg};color:${f.color}">${f.label}</span>`:''}</div>
+          <div class="k-tags">${(c.ecoles||[]).map(e=>`<span class="school-tag">${SCHOOLS_CONFIG[e]?.name||e}</span>`).join('')}${fTags}</div>
           <div class="k-move">
             ${prevSt?`<button onclick="event.stopPropagation();moveStatus(${c.id},'${prevSt}')">&#9664; ${STATUSES[prevSt]?.label||prevSt}</button>`:''}
             ${nextSt?`<button onclick="event.stopPropagation();moveStatus(${c.id},'${nextSt}')">${STATUSES[nextSt]?.label||nextSt} &#9654;</button>`:''}
@@ -1337,8 +1350,8 @@ function renderDashboard() {
   const byCity = Object.entries(cityMap).sort((a,b)=>b[1]-a[1]).slice(0,15);
   const maxCity = Math.max(...byCity.map(c=>c[1]),1);
   
-  // By filiere (top 12)
-  const filMap = {}; base.forEach(c=>{ if(c.filiere){ const f=fl[c.filiere]; filMap[c.filiere]={label:f?.label||c.filiere,count:(filMap[c.filiere]?.count||0)+1,color:f?.color||'#999'}; }});
+  // By filiere (top 12) — handles multi-filiere
+  const filMap = {}; base.forEach(c=>{ (c.filiere||'').split(',').forEach(k=>{ k=k.trim(); if(k){ const f=fl[k]; if(!filMap[k]) filMap[k]={label:f?.label||k,count:0,color:f?.color||'#999'}; filMap[k].count++; }}); });
   const byFil = Object.values(filMap).sort((a,b)=>b.count-a.count).slice(0,12);
   const maxFil = Math.max(...byFil.map(f=>f.count),1);
   
@@ -1858,7 +1871,8 @@ function initDarkMode() {
       <div class="fgrid"><div class="fg"><label class="fl">Nom *</label><input id="f-nom" placeholder="Ubisoft"></div><div class="fg"><label class="fl">SIRET</label><input id="f-siret" placeholder="123 456 789 00012" maxlength="17"></div></div>
       <div class="fgrid"><div class="fg"><label class="fl">Adresse</label><input id="f-adresse" placeholder="28 rue Armand Carrel"></div><div class="fg"><label class="fl">Ville *</label><input id="f-ville" placeholder="75019 Paris"></div></div>
       <div class="fg"><label class="fl">Écoles intéressées *</label><div class="checkbox-grid" id="f-ecoles-grid"></div></div>
-      <div class="fgrid"><div class="fg"><label class="fl">Filière principale</label><select id="f-filiere"></select></div><div class="fg"><label class="fl">Statut</label><select id="f-statut"><option value="froid">Froid</option><option value="tiede">Tiède</option><option value="chaud">Chaud</option><option value="partenaire">Partenaire</option></select></div></div>
+      <div class="fg"><label class="fl">Filières</label><div class="checkbox-grid" id="f-filiere-grid"></div></div>
+      <div class="fg"><label class="fl">Statut</label><select id="f-statut"><option value="froid">Froid</option><option value="tiede">Tiède</option><option value="chaud">Chaud</option><option value="partenaire">Partenaire</option></select></div>
       <div class="fgrid"><div class="fg"><label class="fl">Contact entreprise</label><input id="f-contact" placeholder="Jean Dupont"></div><div class="fg"><label class="fl">Email</label><input id="f-email" placeholder="contact@entreprise.fr"></div></div>
       <div class="fgrid"><div class="fg"><label class="fl">Téléphone</label><input id="f-tel" placeholder="+33 1 00 00 00 00"></div><div class="fg"><label class="fl">Obtenu par (qui a eu le contact)</label><select id="f-obtenu"></select></div></div>
       <div class="fg"><label class="fl">Types de partenariat</label><div class="checkbox-grid" id="f-offre-grid"></div></div>
