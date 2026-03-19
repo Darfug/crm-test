@@ -59,6 +59,21 @@ body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;backgrou
 .stat-label{font-size:10px;color:var(--text-secondary);margin-bottom:2px}
 .stat-val{font-size:18px;font-weight:700;color:var(--text-primary)}
 
+/* ─── ENRICHED DETAIL ─── */
+.det-header-enriched{display:flex;align-items:center;gap:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:0.5px solid var(--border)}
+.det-logo{width:40px;height:40px;border-radius:8px;border:0.5px solid var(--border);object-fit:contain;background:#fff;padding:4px}
+.det-logo-placeholder{width:40px;height:40px;border-radius:8px;background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--accent);flex-shrink:0}
+.det-header-info{flex:1}
+.det-header-info h3{font-size:15px;font-weight:700;margin-bottom:2px}
+.det-header-info .det-subtitle{font-size:11px;color:var(--text-secondary)}
+.det-actions-bar{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}
+.det-actions-bar button{padding:4px 10px;border:0.5px solid var(--border);border-radius:6px;font-size:10px;cursor:pointer;background:var(--bg-primary);color:var(--text-secondary);font-family:inherit;display:flex;align-items:center;gap:4px;transition:all .12s}
+.det-actions-bar button:hover{border-color:var(--accent);color:var(--accent)}
+.det-gmaps-link{display:inline-flex;align-items:center;gap:4px;color:#185FA5;font-size:11px;text-decoration:none}
+.det-gmaps-link:hover{text-decoration:underline}
+.offre-tags{display:flex;flex-wrap:wrap;gap:3px}
+.offre-tag{padding:2px 7px;border-radius:6px;font-size:9px;font-weight:600;background:#EAF3DE;color:#1B5F0A;border:0.5px solid #97C459}
+
 /* ─── FILTER BAR ─── */
 .filter-bar{background:var(--bg-secondary);border:0.5px solid var(--border);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:10px}
 .filter-bar-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
@@ -884,24 +899,36 @@ function editFromDetail(){closeModal('detail-modal');openEditModal(detailId);}
 function showDetail(id) {
   const c = companies.find(x=>x.id===id); if(!c) return;
   detailId = id;
-  document.getElementById('det-name').textContent = c.nom;
   const fl = FL(), f = fl[c.filiere], s = STATUSES[c.statut];
   const exchanges = (c.exchanges||[]).sort((a,b)=>b.date.localeCompare(a.date));
+  
+  // Logo from website favicon
+  const domain = c.web ? c.web.replace(/https?:\/\//, '').replace(/\/.*/, '') : '';
+  const logoUrl = domain ? `https://www.google.com/s2/favicons?sz=64&domain=${domain}` : '';
+  
+  // Google Maps URL from address
+  const mapsQuery = encodeURIComponent((c.adresse||'') + ', ' + (c.ville||''));
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
+  
+  // Offre tags
+  const offreTags = (c.offre||'').split(',').map(o=>o.trim()).filter(Boolean);
+  
+  document.getElementById('det-name').innerHTML = `${logoUrl?`<img src="${logoUrl}" style="width:22px;height:22px;border-radius:4px;margin-right:8px;vertical-align:middle" onerror="this.style.display='none'">`:''}${c.nom}`;
   
   document.getElementById('det-body').innerHTML = `
     <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px">
       ${s?`<span class="badge" style="background:${s.bg};color:${s.text}">${s.label}</span>`:''}
       ${f?`<span class="ftag" style="background:${f.bg};color:${f.color}">${f.label}</span>`:''}
-      ${c.offre?`<span class="badge" style="background:#f5f5f2;color:#666">${c.offre}</span>`:''}
       ${(c.ecoles||[]).map(e=>`<span class="school-tag">${SCHOOLS_CONFIG[e]?.name||e}</span>`).join('')}
     </div>
+    ${offreTags.length?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px">${offreTags.map(o=>`<span style="padding:2px 8px;border-radius:6px;font-size:9px;font-weight:600;background:#E6F1FB;color:#185FA5">${o}</span>`).join('')}</div>`:''}
     ${[
       ['SIRET',c.siret||'—'],
-      ['Adresse',c.adresse||'—'],
-      ['Ville',c.ville],['Contact',c.contact],
+      ['Adresse',(c.adresse||c.ville)?`<a href="${mapsUrl}" target="_blank" style="color:#185FA5;text-decoration:none">${c.adresse?c.adresse+', ':''}${c.ville} &#8599;</a>`:'—'],
+      ['Contact',c.contact&&c.contact!=='—'?c.contact:'—'],
       ['Email',c.email?`<a href="mailto:${c.email}" style="color:#185FA5">${c.email}</a>`:'—'],
-      ['Téléphone',c.tel],
-      ['Site web',c.web?`<a href="${c.web}" target="_blank" style="color:#185FA5">${c.web}</a>`:'—'],
+      ['Téléphone',c.tel&&c.tel!=='—'?`<a href="tel:${c.tel}" style="color:#185FA5">${c.tel}</a>`:'—'],
+      ['Site web',c.web?`<a href="${c.web}" target="_blank" style="color:#185FA5;text-decoration:none">${c.web} &#8599;</a>`:'—'],
       ['Obtenu par',`<strong style="color:var(--accent)">${c.obtenu_par||'—'}</strong>`],
       ['Dern. échange',`<strong style="color:var(--accent)">${c.dernier_echange||'—'}</strong>`],
     ].map(([k,v])=>`<div class="detail-row"><span class="detail-key">${k}</span><span class="detail-val">${v}</span></div>`).join('')}
@@ -1324,6 +1351,87 @@ function renderDashboard() {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
+   EXPORT PDF — Fiche entreprise
+   ═══════════════════════════════════════════════════════════════════ */
+function exportDetailPDF() {
+  const c = companies.find(x=>x.id===detailId);
+  if (!c) return;
+  const fl = FL(), f = fl[c.filiere], s = STATUSES[c.statut];
+  const exchanges = (c.exchanges||[]).sort((a,b)=>b.date.localeCompare(a.date));
+  const domain = c.web ? c.web.replace(/https?:\/\//, '').replace(/\/.*/, '') : '';
+  const logoUrl = domain ? `https://www.google.com/s2/favicons?sz=64&domain=${domain}` : '';
+  const offreTags = (c.offre||'').split(',').map(o=>o.trim()).filter(Boolean);
+  const mapsQuery = encodeURIComponent((c.adresse||'') + ', ' + (c.ville||''));
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Fiche ${c.nom}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',-apple-system,sans-serif}
+body{padding:30px;color:#1a1a1a;max-width:700px;margin:0 auto}
+.header{display:flex;align-items:center;gap:12px;margin-bottom:20px;border-bottom:2px solid #7F77DD;padding-bottom:16px}
+.header img{width:40px;height:40px;border-radius:6px}
+.header h1{font-size:22px;font-weight:700;flex:1}
+.header .date{font-size:11px;color:#888}
+.tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px}
+.tag{padding:3px 10px;border-radius:8px;font-size:10px;font-weight:600}
+.section{margin-bottom:18px}
+.section h3{font-size:13px;font-weight:700;color:#7F77DD;margin-bottom:8px;border-bottom:1px solid #eee;padding-bottom:4px}
+.row{display:flex;padding:5px 0;border-bottom:1px solid #f5f5f5}
+.row-key{font-size:11px;color:#888;width:120px;flex-shrink:0}
+.row-val{font-size:12px;flex:1}
+.note{background:#f8f8f6;border-radius:8px;padding:10px;font-size:11px;color:#666;line-height:1.6;margin-top:8px}
+.exchange{background:#f8f8f6;border-radius:8px;padding:8px 10px;margin-bottom:6px}
+.exchange .meta{display:flex;justify-content:space-between;margin-bottom:3px}
+.exchange .who{font-size:10px;font-weight:700;color:#7F77DD}
+.exchange .when{font-size:9px;color:#aaa}
+.exchange .text{font-size:11px;color:#444;line-height:1.5}
+.footer{margin-top:24px;border-top:1px solid #eee;padding-top:10px;font-size:9px;color:#bbb;text-align:center}
+@media print{body{padding:15px}@page{margin:15mm}}
+</style></head><body>
+<div class="header">
+  ${logoUrl?`<img src="${logoUrl}" onerror="this.style.display='none'">`:''}
+  <h1>${c.nom}</h1>
+  <span class="date">Exporté le ${new Date().toLocaleDateString('fr-FR')}</span>
+</div>
+
+<div class="tags">
+  ${s?`<span class="tag" style="background:${s.bg};color:${s.text}">${s.label}</span>`:''}
+  ${f?`<span class="tag" style="background:${f.bg};color:${f.color}">${f.label}</span>`:''}
+  ${(c.ecoles||[]).map(e=>`<span class="tag" style="background:#EEEDFE;color:#3C3489">${SCHOOLS_CONFIG[e]?.name||e}</span>`).join('')}
+  ${offreTags.map(o=>`<span class="tag" style="background:#E6F1FB;color:#185FA5">${o}</span>`).join('')}
+</div>
+
+<div class="section">
+  <h3>Informations générales</h3>
+  ${[
+    ['SIRET',c.siret||'—'],
+    ['Adresse',(c.adresse?c.adresse+', ':'')+c.ville],
+    ['Contact',c.contact||'—'],
+    ['Email',c.email||'—'],
+    ['Téléphone',c.tel||'—'],
+    ['Site web',c.web||'—'],
+    ['Obtenu par',c.obtenu_par||'—'],
+    ['Dernier échange',c.dernier_echange||'—'],
+  ].map(([k,v])=>`<div class="row"><span class="row-key">${k}</span><span class="row-val">${v}</span></div>`).join('')}
+</div>
+
+${c.notes?`<div class="section"><h3>Notes</h3><div class="note">${c.notes}</div></div>`:''}
+
+<div class="section">
+  <h3>Historique des échanges (${exchanges.length})</h3>
+  ${exchanges.length ? exchanges.map(ex=>`<div class="exchange"><div class="meta"><span class="who">${ex.auteur}</span><span class="when">${formatDate(ex.date)}</span></div><div class="text">${ex.resume}</div></div>`).join('') : '<div style="font-size:11px;color:#aaa;padding:6px 0">Aucun échange enregistré</div>'}
+</div>
+
+<div class="footer">Groupe EDH — CRM Multi-Écoles • Fiche générée automatiquement</div>
+</body></html>`;
+
+  const win = window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+  // Attendre le chargement du logo puis lancer l'impression
+  setTimeout(()=>{ win.print(); }, 500);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    DARK MODE
    ═══════════════════════════════════════════════════════════════════ */
 function toggleDarkMode() {
@@ -1463,6 +1571,7 @@ function initDarkMode() {
     <div class="modal-body" id="det-body"></div>
     <div class="modal-footer">
       <button class="btn btn-danger" onclick="deleteFromDetail()" style="margin-right:auto">Supprimer</button>
+      <button class="btn" onclick="exportDetailPDF()" title="Exporter en PDF">&#128196; PDF</button>
       <button class="btn" onclick="closeModal('detail-modal')">Fermer</button>
       <button class="btn btn-primary" onclick="editFromDetail()">Modifier</button>
     </div>
