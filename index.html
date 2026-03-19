@@ -59,6 +59,34 @@ body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;backgrou
 .stat-label{font-size:10px;color:var(--text-secondary);margin-bottom:2px}
 .stat-val{font-size:18px;font-weight:700;color:var(--text-primary)}
 
+/* ─── FILTER BAR ─── */
+.filter-bar{background:var(--bg-secondary);border:0.5px solid var(--border);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:10px}
+.filter-bar-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.filter-bar-toggle h4{font-size:12px;font-weight:600;color:var(--text-primary);display:flex;align-items:center;gap:6px}
+.filter-bar-toggle .filter-count{font-size:10px;background:var(--accent);color:#fff;padding:1px 6px;border-radius:10px;font-weight:600}
+.filter-bar-toggle .arrow{font-size:10px;color:var(--text-tertiary);transition:transform .2s}
+.filter-bar.open .arrow{transform:rotate(180deg)}
+.filter-body{display:none;padding-top:10px}
+.filter-bar.open .filter-body{display:block}
+.filter-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center}
+.filter-row:last-child{margin-bottom:0}
+.filter-group{display:flex;flex-direction:column;gap:3px;min-width:120px}
+.filter-group label{font-size:10px;font-weight:600;color:var(--text-secondary)}
+.filter-group select,.filter-group input{padding:5px 8px;border:0.5px solid var(--border-md);border-radius:6px;font-size:11px;font-family:inherit;background:var(--bg-primary);color:var(--text-primary);min-width:100px}
+.filter-group select:focus,.filter-group input:focus{outline:none;border-color:var(--accent)}
+.filter-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.filter-tag{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:#EEEDFE;border-radius:6px;font-size:10px;font-weight:600;color:#3C3489}
+.filter-tag button{background:none;border:none;cursor:pointer;font-size:10px;color:#7F77DD;padding:0;line-height:1}
+.filter-tag button:hover{color:#E24B4A}
+.filter-presets{display:flex;gap:4px;flex-wrap:wrap}
+.filter-preset{padding:4px 10px;border:0.5px solid var(--border);border-radius:6px;font-size:10px;cursor:pointer;background:var(--bg-primary);color:var(--text-secondary);font-family:inherit;transition:all .12s}
+.filter-preset:hover{border-color:var(--accent);color:var(--accent)}
+.filter-preset.active{background:#EEEDFE;border-color:#7F77DD;color:#3C3489;font-weight:600}
+.sort-btn{padding:4px 10px;border:0.5px solid var(--border);border-radius:6px;font-size:10px;cursor:pointer;background:var(--bg-primary);color:var(--text-secondary);font-family:inherit;display:flex;align-items:center;gap:4px}
+.sort-btn:hover{border-color:var(--accent)}
+.sort-btn.active{background:#EEEDFE;border-color:#7F77DD;color:#3C3489;font-weight:600}
+.results-count{font-size:11px;color:var(--text-secondary);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+
 /* ─── TABLE ─── */
 .table-wrap{border:0.5px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
 table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
@@ -361,17 +389,177 @@ function switchSchool(code) {
    ═══════════════════════════════════════════════════════════════════ */
 function getFiltered() {
   const q = (document.getElementById('search-input')?.value || '').toLowerCase();
-  return companies.filter(c => {
-    // Filter by school tag
+  const fltVille = document.getElementById('flt-ville')?.value || '';
+  const fltOffre = document.getElementById('flt-offre')?.value || '';
+  const fltReferent = document.getElementById('flt-referent')?.value || '';
+  const fltDernier = document.getElementById('flt-dernier')?.value || '';
+  const fltSiret = document.getElementById('flt-siret')?.value || '';
+  const fltContact = document.getElementById('flt-contact')?.value || '';
+  const fltEchanges = document.getElementById('flt-echanges')?.value || '';
+  const fltNotes = document.getElementById('flt-notes')?.value || '';
+  const fltNotesSearch = (document.getElementById('flt-notes-search')?.value || '').toLowerCase();
+  const sortBy = document.getElementById('flt-sort')?.value || 'nom-asc';
+
+  let result = companies.filter(c => {
+    // School filter
     if (currentSchoolFilter !== 'all' && !(c.ecoles || []).includes(currentSchoolFilter)) return false;
+    // Filiere filter
     if (curFiliere !== 'all' && c.filiere !== curFiliere) return false;
+    // Status filter
     if (curStatus && c.statut !== curStatus) return false;
-    if (q && !c.nom.toLowerCase().includes(q) && !c.ville.toLowerCase().includes(q) && !(c.contact||'').toLowerCase().includes(q) && !(c.obtenu_par||'').toLowerCase().includes(q)) return false;
+    // Search
+    if (q && !c.nom.toLowerCase().includes(q) && !c.ville.toLowerCase().includes(q) && !(c.contact||'').toLowerCase().includes(q) && !(c.obtenu_par||'').toLowerCase().includes(q) && !(c.adresse||'').toLowerCase().includes(q) && !(c.siret||'').includes(q)) return false;
+    // Ville
+    if (fltVille && c.ville !== fltVille) return false;
+    // Offre (multi-value: check if any selected type is in the company's offre string)
+    if (fltOffre && !(c.offre||'').toLowerCase().includes(fltOffre.toLowerCase())) return false;
+    // Référent
+    if (fltReferent && c.obtenu_par !== fltReferent) return false;
+    // Dernier échange par
+    if (fltDernier && c.dernier_echange !== fltDernier) return false;
+    // SIRET
+    if (fltSiret === 'oui' && !(c.siret||'').trim()) return false;
+    if (fltSiret === 'non' && (c.siret||'').trim()) return false;
+    // Contact assigné
+    if (fltContact === 'oui' && (!c.contact || c.contact === '—')) return false;
+    if (fltContact === 'non' && c.contact && c.contact !== '—') return false;
+    // Échanges
+    const exLen = (c.exchanges||[]).length;
+    if (fltEchanges === '0' && exLen > 0) return false;
+    if (fltEchanges === '1+' && exLen < 1) return false;
+    if (fltEchanges === '3+' && exLen < 3) return false;
+    // Notes
+    if (fltNotes === 'oui' && !(c.notes||'').trim()) return false;
+    if (fltNotes === 'non' && (c.notes||'').trim()) return false;
+    // Notes keyword search
+    if (fltNotesSearch && !(c.notes||'').toLowerCase().includes(fltNotesSearch)) return false;
     return true;
   });
+
+  // Sort
+  result.sort((a, b) => {
+    switch(sortBy) {
+      case 'nom-asc': return (a.nom||'').localeCompare(b.nom||'');
+      case 'nom-desc': return (b.nom||'').localeCompare(a.nom||'');
+      case 'ville-asc': return (a.ville||'').localeCompare(b.ville||'');
+      case 'echanges-asc': return (a.exchanges||[]).length - (b.exchanges||[]).length;
+      case 'echanges-desc': return (b.exchanges||[]).length - (a.exchanges||[]).length;
+      case 'recent': {
+        const da = getLastExchangeDate(a), db = getLastExchangeDate(b);
+        return db.localeCompare(da);
+      }
+      case 'ancien': {
+        const da = getLastExchangeDate(a), db = getLastExchangeDate(b);
+        if (!da && db) return -1; if (da && !db) return 1; if (!da && !db) return 0;
+        return da.localeCompare(db);
+      }
+      default: return 0;
+    }
+  });
+
+  // Update results count and active filters display
+  updateResultsCount(result.length);
+  updateActiveFilters();
+  return result;
 }
 
-function renderAll() { renderStats(); renderTableHead(); renderTable(); if(curTab==='map')renderMapMarkers(); }
+function getLastExchangeDate(c) {
+  const ex = (c.exchanges||[]);
+  if (!ex.length) return '';
+  return ex.reduce((latest, e) => e.date > latest ? e.date : latest, '');
+}
+
+function applyFilters() { renderAll(); }
+
+function resetFilters() {
+  ['flt-ville','flt-offre','flt-referent','flt-dernier','flt-siret','flt-contact','flt-echanges','flt-notes'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  const ns = document.getElementById('flt-notes-search'); if (ns) ns.value = '';
+  document.getElementById('flt-sort').value = 'nom-asc';
+  document.querySelectorAll('.filter-preset').forEach(b => b.classList.remove('active'));
+  renderAll();
+}
+
+function applyPreset(preset) {
+  resetFilters();
+  document.querySelectorAll('.filter-preset').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  switch(preset) {
+    case 'relance':
+      document.getElementById('flt-echanges').value = '1+';
+      document.getElementById('flt-sort').value = 'ancien';
+      break;
+    case 'incomplet':
+      document.getElementById('flt-contact').value = 'non';
+      break;
+    case 'actifs':
+      curStatus = 'partenaire';
+      document.querySelectorAll('.nav-item[data-s]').forEach(el => el.classList.toggle('active', el.dataset.s==='partenaire'));
+      break;
+    case 'jamais':
+      document.getElementById('flt-echanges').value = '0';
+      break;
+    case 'sans-siret':
+      document.getElementById('flt-siret').value = 'non';
+      break;
+  }
+  renderAll();
+  document.getElementById('filter-bar').classList.add('open');
+}
+
+function updateResultsCount(count) {
+  const el = document.getElementById('results-count');
+  if (el) {
+    const total = getBaseSet().length;
+    el.innerHTML = count === total ?
+      `<span>${count} entreprises</span>` :
+      `<span><strong>${count}</strong> résultats sur ${total} entreprises</span><span style="font-size:10px;color:var(--accent);cursor:pointer" onclick="resetFilters()">Effacer les filtres</span>`;
+  }
+}
+
+function updateActiveFilters() {
+  const tags = [];
+  const fv = document.getElementById('flt-ville')?.value; if (fv) tags.push({label:'Ville: '+fv, clear:()=>{document.getElementById('flt-ville').value='';applyFilters();}});
+  const fo = document.getElementById('flt-offre')?.value; if (fo) tags.push({label:'Offre: '+fo, clear:()=>{document.getElementById('flt-offre').value='';applyFilters();}});
+  const fr = document.getElementById('flt-referent')?.value; if (fr) tags.push({label:'Référent: '+fr, clear:()=>{document.getElementById('flt-referent').value='';applyFilters();}});
+  const fd = document.getElementById('flt-dernier')?.value; if (fd) tags.push({label:'Dern. échange: '+fd, clear:()=>{document.getElementById('flt-dernier').value='';applyFilters();}});
+  const fs = document.getElementById('flt-siret')?.value; if (fs) tags.push({label:'SIRET: '+(fs==='oui'?'Avec':'Sans'), clear:()=>{document.getElementById('flt-siret').value='';applyFilters();}});
+  const fc = document.getElementById('flt-contact')?.value; if (fc) tags.push({label:'Contact: '+(fc==='oui'?'Avec':'Sans'), clear:()=>{document.getElementById('flt-contact').value='';applyFilters();}});
+  const fe = document.getElementById('flt-echanges')?.value; if (fe) tags.push({label:'Échanges: '+fe, clear:()=>{document.getElementById('flt-echanges').value='';applyFilters();}});
+  const fn = document.getElementById('flt-notes')?.value; if (fn) tags.push({label:'Notes: '+(fn==='oui'?'Avec':'Sans'), clear:()=>{document.getElementById('flt-notes').value='';applyFilters();}});
+  const fns = document.getElementById('flt-notes-search')?.value; if (fns) tags.push({label:'Notes: "'+fns+'"', clear:()=>{document.getElementById('flt-notes-search').value='';applyFilters();}});
+
+  const el = document.getElementById('active-filters');
+  const countEl = document.getElementById('filter-count');
+  if (el) el.innerHTML = tags.map((t,i) => `<span class="filter-tag">${t.label}<button onclick="event.stopPropagation();clearFilterTag(${i})">&#10005;</button></span>`).join('');
+  if (countEl) { countEl.style.display = tags.length ? 'inline' : 'none'; countEl.textContent = tags.length; }
+  // Store clear functions globally
+  window._filterTagClears = tags.map(t => t.clear);
+}
+
+function clearFilterTag(i) {
+  if (window._filterTagClears && window._filterTagClears[i]) window._filterTagClears[i]();
+}
+
+// Populate dynamic filter dropdowns from current data
+function populateFilterDropdowns() {
+  const base = getBaseSet();
+  // Villes
+  const villes = [...new Set(base.map(c => c.ville).filter(Boolean))].sort();
+  document.getElementById('flt-ville').innerHTML = '<option value="">Toutes les villes</option>' + villes.map(v => `<option value="${v}">${v}</option>`).join('');
+  // Offres
+  const offres = [...new Set(base.flatMap(c => (c.offre||'').split(',').map(s=>s.trim())).filter(Boolean))].sort();
+  document.getElementById('flt-offre').innerHTML = '<option value="">Tous les types</option>' + offres.map(o => `<option value="${o}">${o}</option>`).join('');
+  // Référents
+  const refs = [...new Set(base.map(c => c.obtenu_par).filter(v => v && v !== '—'))].sort();
+  document.getElementById('flt-referent').innerHTML = '<option value="">Tous</option>' + refs.map(r => `<option value="${r}">${r}</option>`).join('');
+  // Dernier échange
+  const derniers = [...new Set(base.map(c => c.dernier_echange).filter(v => v && v !== '—'))].sort();
+  document.getElementById('flt-dernier').innerHTML = '<option value="">Tous</option>' + derniers.map(d => `<option value="${d}">${d}</option>`).join('');
+}
+
+function renderAll() { populateFilterDropdowns(); renderStats(); renderTableHead(); renderTable(); if(curTab==='map')renderMapMarkers(); }
 
 function renderStats() {
   const a = getBaseSet();
@@ -924,7 +1112,57 @@ async function syncData() {
       <button class="btn" onclick="exportCSV()">&#8615; CSV</button>
       <button class="btn btn-primary" onclick="openAddModal()">+ Ajouter</button>
     </div>
-    <div class="view-list active" id="view-list"><div class="content"><div id="sp-banner-wrap"></div><div class="stats-row" id="stats-row"></div><div class="table-wrap"><table><thead><tr id="table-head"></tr></thead><tbody id="table-body"></tbody></table></div></div></div>
+    <div class="view-list active" id="view-list"><div class="content"><div id="sp-banner-wrap"></div><div class="stats-row" id="stats-row"></div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar" id="filter-bar">
+  <div class="filter-bar-toggle" onclick="document.getElementById('filter-bar').classList.toggle('open')">
+    <h4>&#9881; Filtres avancés <span class="filter-count" id="filter-count" style="display:none">0</span></h4>
+    <span class="arrow">&#9660;</span>
+  </div>
+  <div class="filter-body">
+    <div class="filter-row">
+      <div class="filter-group"><label>Ville</label><select id="flt-ville" onchange="applyFilters()"><option value="">Toutes</option></select></div>
+      <div class="filter-group"><label>Type de partenariat</label><select id="flt-offre" onchange="applyFilters()"><option value="">Tous</option></select></div>
+      <div class="filter-group"><label>Référent (obtenu par)</label><select id="flt-referent" onchange="applyFilters()"><option value="">Tous</option></select></div>
+      <div class="filter-group"><label>Dern. échange par</label><select id="flt-dernier" onchange="applyFilters()"><option value="">Tous</option></select></div>
+    </div>
+    <div class="filter-row">
+      <div class="filter-group"><label>SIRET</label><select id="flt-siret" onchange="applyFilters()"><option value="">Tous</option><option value="oui">Avec SIRET</option><option value="non">Sans SIRET</option></select></div>
+      <div class="filter-group"><label>Contact assigné</label><select id="flt-contact" onchange="applyFilters()"><option value="">Tous</option><option value="oui">Avec contact</option><option value="non">Sans contact</option></select></div>
+      <div class="filter-group"><label>Échanges</label><select id="flt-echanges" onchange="applyFilters()"><option value="">Tous</option><option value="0">Jamais contacté (0)</option><option value="1+">Au moins 1 échange</option><option value="3+">3+ échanges</option></select></div>
+      <div class="filter-group"><label>Notes</label><select id="flt-notes" onchange="applyFilters()"><option value="">Tous</option><option value="oui">Avec notes</option><option value="non">Sans notes</option></select></div>
+    </div>
+    <div class="filter-row">
+      <div class="filter-group"><label>Recherche dans les notes</label><input type="text" id="flt-notes-search" placeholder="Mot-clé..." oninput="applyFilters()"></div>
+      <div class="filter-group"><label>Trier par</label>
+        <select id="flt-sort" onchange="applyFilters()">
+          <option value="nom-asc">Nom A→Z</option>
+          <option value="nom-desc">Nom Z→A</option>
+          <option value="ville-asc">Ville A→Z</option>
+          <option value="echanges-asc">Échanges (- au +)</option>
+          <option value="echanges-desc">Échanges (+ au -)</option>
+          <option value="recent">Dernier échange récent</option>
+          <option value="ancien">Dernier échange ancien (à relancer)</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+      <div class="filter-presets">
+        <button class="filter-preset" onclick="applyPreset('relance')">&#128276; À relancer</button>
+        <button class="filter-preset" onclick="applyPreset('incomplet')">&#9888; Fiches incomplètes</button>
+        <button class="filter-preset" onclick="applyPreset('actifs')">&#9989; Partenaires actifs</button>
+        <button class="filter-preset" onclick="applyPreset('jamais')">&#10060; Jamais contactés</button>
+        <button class="filter-preset" onclick="applyPreset('sans-siret')">&#128196; Sans SIRET</button>
+      </div>
+      <button class="btn btn-sm" onclick="resetFilters()" style="font-size:10px">Réinitialiser</button>
+    </div>
+    <div class="filter-tags" id="active-filters"></div>
+  </div>
+</div>
+
+<div class="results-count" id="results-count"></div>
+<div class="table-wrap"><table><thead><tr id="table-head"></tr></thead><tbody id="table-body"></tbody></table></div></div></div>
     <div class="view-map" id="view-map"><div id="map"></div><div class="map-legend"><div class="leg-item"><div class="leg-dot" style="background:#1D9E75"></div>Partenaire</div><div class="leg-item"><div class="leg-dot" style="background:#D85A30"></div>Chaud</div><div class="leg-item"><div class="leg-dot" style="background:#EF9F27"></div>Tiède</div><div class="leg-item"><div class="leg-dot" style="background:#378ADD"></div>Froid</div></div></div>
   </div>
 </div>
