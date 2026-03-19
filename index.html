@@ -87,6 +87,62 @@ body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;backgrou
 .sort-btn.active{background:#EEEDFE;border-color:#7F77DD;color:#3C3489;font-weight:600}
 .results-count{font-size:11px;color:var(--text-secondary);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
 
+/* ─── DASHBOARD ─── */
+.view-dashboard{display:none;flex:1;flex-direction:column;overflow-y:auto;padding:16px}
+.view-dashboard.active{display:flex}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.dash-card{background:var(--bg-primary);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px}
+.dash-card h4{font-size:12px;font-weight:600;color:var(--text-primary);margin-bottom:10px}
+.dash-card.full{grid-column:1/-1}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.bar-label{font-size:10px;color:var(--text-secondary);width:110px;text-align:right;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-track{flex:1;height:20px;background:var(--bg-secondary);border-radius:4px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:4px;transition:width .5s;min-width:1px}
+.bar-val{font-size:9px;font-weight:700;margin-left:6px;color:var(--text-secondary)}
+.dash-big-numbers{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.dash-big{background:var(--bg-primary);border:0.5px solid var(--border);border-radius:var(--radius-md);padding:12px;text-align:center}
+.dash-big .num{font-size:28px;font-weight:700;color:var(--text-primary)}
+.dash-big .lbl{font-size:10px;color:var(--text-secondary);margin-top:2px}
+
+/* ─── KANBAN ─── */
+.view-kanban{display:none;flex:1;overflow-x:auto;padding:12px}
+.view-kanban.active{display:flex;gap:10px}
+.kanban-col{min-width:250px;max-width:300px;flex:1;background:var(--bg-secondary);border-radius:var(--radius-lg);display:flex;flex-direction:column;max-height:calc(100vh - 140px)}
+.kanban-header{padding:10px 12px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.kanban-header h4{font-size:12px;font-weight:700}
+.kanban-header .kcount{font-size:10px;background:var(--bg-tertiary);padding:2px 7px;border-radius:10px;color:var(--text-secondary)}
+.kanban-body{flex:1;overflow-y:auto;padding:8px}
+.kanban-card{background:var(--bg-primary);border:0.5px solid var(--border);border-radius:var(--radius-md);padding:10px;margin-bottom:6px;cursor:pointer;transition:box-shadow .15s}
+.kanban-card:hover{box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.kanban-card h5{font-size:12px;font-weight:600;margin-bottom:3px;color:var(--text-primary)}
+.kanban-card .k-ville{font-size:10px;color:var(--text-secondary);margin-bottom:4px}
+.kanban-card .k-tags{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:4px}
+.kanban-card .k-move{display:flex;gap:3px;margin-top:6px;border-top:0.5px solid var(--border);padding-top:6px}
+.kanban-card .k-move button{flex:1;padding:3px;border:0.5px solid var(--border);border-radius:4px;font-size:9px;cursor:pointer;background:var(--bg-primary);color:var(--text-secondary);font-family:inherit;transition:all .1s}
+.kanban-card .k-move button:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* ─── PAGINATION ─── */
+.pagination{display:flex;align-items:center;justify-content:center;gap:4px;padding:10px 0}
+.pagination button{padding:4px 10px;border:0.5px solid var(--border);border-radius:6px;font-size:11px;cursor:pointer;background:var(--bg-primary);color:var(--text-secondary);font-family:inherit}
+.pagination button:hover{border-color:var(--accent)}
+.pagination button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.pagination button:disabled{opacity:.4;cursor:default}
+.pagination span{font-size:11px;color:var(--text-secondary)}
+.page-size-sel{font-size:11px;color:var(--text-secondary);display:flex;align-items:center;gap:4px}
+.page-size-sel select{padding:3px 6px;border:0.5px solid var(--border);border-radius:4px;font-size:11px;font-family:inherit;background:var(--bg-primary);color:var(--text-primary)}
+
+/* ─── DARK MODE ─── */
+.dark-toggle{position:fixed;bottom:14px;right:14px;width:36px;height:36px;border-radius:50%;background:var(--bg-primary);border:0.5px solid var(--border-md);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,0.12);transition:all .2s}
+.dark-toggle:hover{transform:scale(1.1)}
+body.dark{--bg-primary:#1a1a1e;--bg-secondary:#242428;--bg-tertiary:#2e2e33;--text-primary:#e0e0e0;--text-secondary:#999;--text-tertiary:#666;--border:rgba(255,255,255,0.08);--border-md:rgba(255,255,255,0.15);--accent:#9B93F0;--accent-hover:#8880e8}
+body.dark .school-tag{background:#2d2a5e;color:#CECBF6}
+body.dark .filter-tag{background:#2d2a5e;color:#CECBF6}
+body.dark .checkbox-grid label.checked{background:#2d2a5e;border-color:#534AB7;color:#CECBF6}
+body.dark .checkbox-grid label.checked .cb-icon{background:#534AB7;border-color:#534AB7}
+body.dark .filter-preset.active{background:#2d2a5e;border-color:#534AB7;color:#CECBF6}
+body.dark .kanban-card{border-color:rgba(255,255,255,0.08)}
+body.dark .dash-card{border-color:rgba(255,255,255,0.08)}
+
 /* ─── TABLE ─── */
 .table-wrap{border:0.5px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
 table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
@@ -302,6 +358,7 @@ let editingId = null, detailId = null;
 let currentSchoolFilter = 'all'; // filter by school tag
 let curFiliere = 'all', curStatus = null, curTab = 'list';
 let mapInstance = null, mapMarkers = [];
+let curPage = 1;
 
 function FL() {
   if (currentSchoolFilter === 'all') {
@@ -617,8 +674,14 @@ function renderTableHead() {
 }
 
 function renderTable() {
-  const rows = getFiltered(), b = document.getElementById('table-body'), vis = TABLE_COLUMNS.filter(c=>c.visible), fl = FL();
-  if(!rows.length) { b.innerHTML = `<tr><td colspan="${vis.length}"><div class="empty-state">Aucune entreprise trouvée</div></td></tr>`; return; }
+  const allRows = getFiltered(), b = document.getElementById('table-body'), vis = TABLE_COLUMNS.filter(c=>c.visible), fl = FL();
+  const pageSize = parseInt(document.getElementById('page-size')?.value||50);
+  const totalPages = Math.max(1, Math.ceil(allRows.length / pageSize));
+  if (curPage > totalPages) curPage = totalPages;
+  const start = (curPage-1)*pageSize;
+  const rows = pageSize >= 9999 ? allRows : allRows.slice(start, start+pageSize);
+  
+  if(!allRows.length) { b.innerHTML = `<tr><td colspan="${vis.length}"><div class="empty-state">Aucune entreprise trouvée</div></td></tr>`; renderPagination(0,0,0); return; }
   b.innerHTML = rows.map(c => {
     const cells = vis.map(col => {
       if(col.key==='nom') return `<td style="font-weight:600">${c.nom}</td>`;
@@ -632,6 +695,20 @@ function renderTable() {
     }).join('');
     return `<tr onclick="showDetail(${c.id})">${cells}</tr>`;
   }).join('');
+  renderPagination(allRows.length, totalPages, pageSize);
+}
+
+function renderPagination(total, totalPages, pageSize) {
+  const el = document.getElementById('pagination');
+  if (!el || totalPages <= 1) { if(el) el.innerHTML=''; return; }
+  let html = `<button onclick="curPage=1;renderTable()" ${curPage===1?'disabled':''}>&#171;</button>`;
+  html += `<button onclick="curPage=Math.max(1,curPage-1);renderTable()" ${curPage===1?'disabled':''}>&#8249;</button>`;
+  const start = Math.max(1, curPage-2), end = Math.min(totalPages, curPage+2);
+  for(let i=start;i<=end;i++) html += `<button class="${i===curPage?'active':''}" onclick="curPage=${i};renderTable()">${i}</button>`;
+  html += `<button onclick="curPage=Math.min(${totalPages},curPage+1);renderTable()" ${curPage===totalPages?'disabled':''}>&#8250;</button>`;
+  html += `<button onclick="curPage=${totalPages};renderTable()" ${curPage===totalPages?'disabled':''}>&#187;</button>`;
+  html += `<span style="margin-left:8px">${total} résultats</span>`;
+  el.innerHTML = html;
 }
 
 /* ═══ MAP ═══ */
@@ -641,7 +718,7 @@ function renderMapMarkers(){if(!mapInstance)return;mapMarkers.forEach(m=>mapInst
 function initMap(){if(mapInstance)return;mapInstance=L.map('map').setView([46.5,2.5],5);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:18}).addTo(mapInstance);renderMapMarkers();}
 
 /* ═══ NAV ═══ */
-function switchTab(tab){curTab=tab;document.getElementById('view-list').classList.toggle('active',tab==='list');document.getElementById('view-map').classList.toggle('active',tab==='map');document.getElementById('tab-list').classList.toggle('active',tab==='list');document.getElementById('tab-map').classList.toggle('active',tab==='map');if(tab==='map')setTimeout(()=>{initMap();mapInstance&&mapInstance.invalidateSize();renderMapMarkers();},50);}
+function switchTab(tab){curTab=tab;['list','map','kanban','dashboard'].forEach(t=>{const el=document.getElementById('view-'+t);const btn=document.getElementById('tab-'+t);if(el)el.classList.toggle('active',t===tab);if(btn)btn.classList.toggle('active',t===tab);});if(tab==='map')setTimeout(()=>{initMap();mapInstance&&mapInstance.invalidateSize();renderMapMarkers();},50);if(tab==='kanban')renderKanban();if(tab==='dashboard')renderDashboard();}
 function setFiliere(f){curFiliere=f;curStatus=null;document.querySelectorAll('.nav-item[data-f]').forEach(el=>el.classList.toggle('active',el.dataset.f===f));document.querySelectorAll('.nav-item[data-s]').forEach(el=>el.classList.remove('active'));renderAll();}
 function setStatus(s){curStatus=curStatus===s?null:s;curFiliere='all';document.querySelectorAll('.nav-item[data-f]').forEach(el=>el.classList.toggle('active',el.dataset.f==='all'));document.querySelectorAll('.nav-item[data-s]').forEach(el=>el.classList.toggle('active',el.dataset.s===s&&curStatus===s));renderAll();}
 function onSearch(){renderAll();}
@@ -1118,6 +1195,151 @@ async function syncData() {
     showLoading(false);
   }
 }
+/* ═══════════════════════════════════════════════════════════════════
+   KANBAN VIEW
+   ═══════════════════════════════════════════════════════════════════ */
+function renderKanban() {
+  const el = document.getElementById('view-kanban');
+  const base = getBaseSet();
+  const statusOrder = ['froid','tiede','chaud','partenaire'];
+  const colors = {froid:'#378ADD',tiede:'#EF9F27',chaud:'#D85A30',partenaire:'#1D9E75'};
+  const fl = FL();
+  
+  el.innerHTML = statusOrder.map(st => {
+    const s = STATUSES[st];
+    const items = base.filter(c => c.statut === st);
+    const prevSt = statusOrder[statusOrder.indexOf(st)-1];
+    const nextSt = statusOrder[statusOrder.indexOf(st)+1];
+    return `<div class="kanban-col">
+      <div class="kanban-header"><h4 style="color:${colors[st]}">${s?.label||st}</h4><span class="kcount">${items.length}</span></div>
+      <div class="kanban-body">${items.map(c => {
+        const f = fl[c.filiere];
+        return `<div class="kanban-card" onclick="showDetail(${c.id})">
+          <h5>${c.nom}</h5>
+          <div class="k-ville">${c.ville}${c.contact&&c.contact!=='—'?' — '+c.contact:''}</div>
+          <div class="k-tags">${(c.ecoles||[]).map(e=>`<span class="school-tag">${SCHOOLS_CONFIG[e]?.name||e}</span>`).join('')}${f?`<span class="ftag" style="background:${f.bg};color:${f.color}">${f.label}</span>`:''}</div>
+          <div class="k-move">
+            ${prevSt?`<button onclick="event.stopPropagation();moveStatus(${c.id},'${prevSt}')">&#9664; ${STATUSES[prevSt]?.label||prevSt}</button>`:''}
+            ${nextSt?`<button onclick="event.stopPropagation();moveStatus(${c.id},'${nextSt}')">${STATUSES[nextSt]?.label||nextSt} &#9654;</button>`:''}
+          </div>
+        </div>`;
+      }).join('')}</div>
+    </div>`;
+  }).join('');
+}
+
+function moveStatus(id, newStatus) {
+  const c = companies.find(x=>x.id===id);
+  if (!c) return;
+  c.statut = newStatus;
+  if(CONFIG.mode==='gsheet') gsUpdateEntreprise(id, c);
+  saveConfig();
+  renderKanban();
+  renderStats();
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DASHBOARD VIEW
+   ═══════════════════════════════════════════════════════════════════ */
+function renderDashboard() {
+  const el = document.getElementById('view-dashboard');
+  const base = getBaseSet();
+  const colors = {froid:'#378ADD',tiede:'#EF9F27',chaud:'#D85A30',partenaire:'#1D9E75'};
+  const fl = FL();
+  
+  // Big numbers
+  const totalExchanges = base.reduce((s,c)=>s+(c.exchanges||[]).length,0);
+  const avgExchanges = base.length ? (totalExchanges/base.length).toFixed(1) : 0;
+  const withSiret = base.filter(c=>(c.siret||'').trim()).length;
+  const withContact = base.filter(c=>c.contact&&c.contact!=='—').length;
+  
+  // By status
+  const byStatus = Object.entries(STATUSES).map(([k,v])=>({label:v.label,count:base.filter(c=>c.statut===k).length,color:colors[k]||v.color}));
+  const maxStatus = Math.max(...byStatus.map(s=>s.count),1);
+  
+  // By school
+  const bySchool = Object.entries(SCHOOLS_CONFIG).map(([k,v])=>({label:v.name,count:base.filter(c=>(c.ecoles||[]).includes(k)).length})).filter(s=>s.count>0).sort((a,b)=>b.count-a.count).slice(0,12);
+  const maxSchool = Math.max(...bySchool.map(s=>s.count),1);
+  
+  // By city (top 12)
+  const cityMap = {}; base.forEach(c=>{ if(c.ville) cityMap[c.ville]=(cityMap[c.ville]||0)+1; });
+  const byCity = Object.entries(cityMap).sort((a,b)=>b[1]-a[1]).slice(0,12);
+  const maxCity = Math.max(...byCity.map(c=>c[1]),1);
+  
+  // By filiere (top 10)
+  const filMap = {}; base.forEach(c=>{ if(c.filiere){ const f=fl[c.filiere]; filMap[c.filiere]={label:f?.label||c.filiere,count:(filMap[c.filiere]?.count||0)+1,color:f?.color||'#999'}; }});
+  const byFil = Object.values(filMap).sort((a,b)=>b.count-a.count).slice(0,10);
+  const maxFil = Math.max(...byFil.map(f=>f.count),1);
+  
+  // By offre type
+  const offreMap = {}; base.forEach(c=>{ (c.offre||'').split(',').forEach(o=>{ o=o.trim(); if(o) offreMap[o]=(offreMap[o]||0)+1; }); });
+  const byOffre = Object.entries(offreMap).sort((a,b)=>b[1]-a[1]);
+  const maxOffre = Math.max(...byOffre.map(o=>o[1]),1);
+
+  el.innerHTML = `
+    <div class="dash-big-numbers">
+      <div class="dash-big"><div class="num">${base.length}</div><div class="lbl">Entreprises</div></div>
+      <div class="dash-big"><div class="num" style="color:#1D9E75">${byStatus.find(s=>s.label==='Partenaire')?.count||0}</div><div class="lbl">Partenaires</div></div>
+      <div class="dash-big"><div class="num">${totalExchanges}</div><div class="lbl">Échanges</div></div>
+      <div class="dash-big"><div class="num">${Math.round(withContact/Math.max(base.length,1)*100)}%</div><div class="lbl">Avec contact</div></div>
+    </div>
+    <div class="dash-grid">
+      <div class="dash-card">
+        <h4>Répartition par statut</h4>
+        ${byStatus.map(s=>`<div class="bar-row"><span class="bar-label">${s.label}</span><div class="bar-track"><div class="bar-fill" style="width:${s.count/maxStatus*100}%;background:${s.color}"></div></div><span class="bar-val">${s.count}</span></div>`).join('')}
+      </div>
+      <div class="dash-card">
+        <h4>Top écoles (nb entreprises taguées)</h4>
+        ${bySchool.map(s=>`<div class="bar-row"><span class="bar-label">${s.label}</span><div class="bar-track"><div class="bar-fill" style="width:${s.count/maxSchool*100}%;background:var(--accent)"></div></div><span class="bar-val">${s.count}</span></div>`).join('')}
+      </div>
+      <div class="dash-card">
+        <h4>Top villes</h4>
+        ${byCity.map(([v,n])=>`<div class="bar-row"><span class="bar-label">${v}</span><div class="bar-track"><div class="bar-fill" style="width:${n/maxCity*100}%;background:#378ADD"></div></div><span class="bar-val">${n}</span></div>`).join('')}
+      </div>
+      <div class="dash-card">
+        <h4>Répartition par filière</h4>
+        ${byFil.map(f=>`<div class="bar-row"><span class="bar-label">${f.label}</span><div class="bar-track"><div class="bar-fill" style="width:${f.count/maxFil*100}%;background:${f.color}"></div></div><span class="bar-val">${f.count}</span></div>`).join('')}
+      </div>
+      <div class="dash-card full">
+        <h4>Types de partenariat</h4>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${byOffre.map(([o,n])=>`<div style="background:var(--bg-secondary);border-radius:8px;padding:8px 14px;text-align:center;min-width:80px"><div style="font-size:18px;font-weight:700;color:var(--text-primary)">${n}</div><div style="font-size:10px;color:var(--text-secondary)">${o}</div></div>`).join('')}
+        </div>
+      </div>
+      <div class="dash-card">
+        <h4>Complétude des fiches</h4>
+        ${[['Avec SIRET',withSiret,base.length,'#1D9E75'],['Avec contact',withContact,base.length,'#378ADD'],['Avec échanges',base.filter(c=>(c.exchanges||[]).length>0).length,base.length,'#EF9F27'],['Avec notes',base.filter(c=>(c.notes||'').trim()).length,base.length,'#D85A30']].map(([label,n,total,color])=>`<div class="bar-row"><span class="bar-label">${label}</span><div class="bar-track"><div class="bar-fill" style="width:${n/Math.max(total,1)*100}%;background:${color}"></div></div><span class="bar-val">${n}/${total} (${Math.round(n/Math.max(total,1)*100)}%)</span></div>`).join('')}
+      </div>
+      <div class="dash-card">
+        <h4>Chiffres clés</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="background:var(--bg-secondary);border-radius:6px;padding:8px;text-align:center"><div style="font-size:18px;font-weight:700">${[...new Set(base.map(c=>c.ville))].length}</div><div style="font-size:10px;color:var(--text-secondary)">Villes</div></div>
+          <div style="background:var(--bg-secondary);border-radius:6px;padding:8px;text-align:center"><div style="font-size:18px;font-weight:700">${avgExchanges}</div><div style="font-size:10px;color:var(--text-secondary)">Moy. échanges/ent.</div></div>
+          <div style="background:var(--bg-secondary);border-radius:6px;padding:8px;text-align:center"><div style="font-size:18px;font-weight:700">${TEAM_MEMBERS.length}</div><div style="font-size:10px;color:var(--text-secondary)">Membres équipe</div></div>
+          <div style="background:var(--bg-secondary);border-radius:6px;padding:8px;text-align:center"><div style="font-size:18px;font-weight:700">${Math.round(withSiret/Math.max(base.length,1)*100)}%</div><div style="font-size:10px;color:var(--text-secondary)">SIRET renseigné</div></div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DARK MODE
+   ═══════════════════════════════════════════════════════════════════ */
+function toggleDarkMode() {
+  document.body.classList.toggle('dark');
+  const isDark = document.body.classList.contains('dark');
+  localStorage.setItem('edh_dark', isDark ? '1' : '0');
+  document.getElementById('dark-btn').textContent = isDark ? '☀' : '🌙';
+}
+
+function initDarkMode() {
+  if (localStorage.getItem('edh_dark') === '1') {
+    document.body.classList.add('dark');
+    document.getElementById('dark-btn').textContent = '☀';
+  }
+}
+
 /* init() is called after DOM is ready — see end of file */
 </script>
 
@@ -1145,7 +1367,7 @@ async function syncData() {
   <div class="main">
     <div class="topbar">
       <h2 id="view-title">Toutes les entreprises</h2>
-      <div class="tabs"><button class="tab active" id="tab-list" onclick="switchTab('list')">Liste</button><button class="tab" id="tab-map" onclick="switchTab('map')">Carte</button></div>
+      <div class="tabs"><button class="tab active" id="tab-list" onclick="switchTab('list')">Liste</button><button class="tab" id="tab-map" onclick="switchTab('map')">Carte</button><button class="tab" id="tab-kanban" onclick="switchTab('kanban')">Kanban</button><button class="tab" id="tab-dashboard" onclick="switchTab('dashboard')">Dashboard</button></div>
       <div class="search-wrap"><svg class="search-icon" width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.5"/><line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><input type="text" id="search-input" placeholder="Rechercher..." oninput="onSearch()"></div>
       <button class="btn" onclick="exportCSV()">&#8615; CSV</button>
       <button class="btn btn-primary" onclick="openAddModal()">+ Ajouter</button>
@@ -1200,8 +1422,13 @@ async function syncData() {
 </div>
 
 <div class="results-count" id="results-count"></div>
-<div class="table-wrap"><table><thead><tr id="table-head"></tr></thead><tbody id="table-body"></tbody></table></div></div></div>
+<div class="table-wrap"><table><thead><tr id="table-head"></tr></thead><tbody id="table-body"></tbody></table></div>
+<div class="pagination" id="pagination"></div>
+<div class="page-size-sel" style="justify-content:flex-end;padding:0 0 8px"><span>Lignes par page :</span><select id="page-size" onchange="curPage=1;renderAll()"><option value="25">25</option><option value="50" selected>50</option><option value="100">100</option><option value="9999">Tout</option></select></div>
+</div></div>
     <div class="view-map" id="view-map"><div id="map"></div><div class="map-legend"><div class="leg-item"><div class="leg-dot" style="background:#1D9E75"></div>Partenaire</div><div class="leg-item"><div class="leg-dot" style="background:#D85A30"></div>Chaud</div><div class="leg-item"><div class="leg-dot" style="background:#EF9F27"></div>Tiède</div><div class="leg-item"><div class="leg-dot" style="background:#378ADD"></div>Froid</div></div></div>
+    <div class="view-kanban" id="view-kanban"></div>
+    <div class="view-dashboard" id="view-dashboard"></div>
   </div>
 </div>
 
@@ -1375,7 +1602,10 @@ document.getElementById('cfg-script-url').value = CONFIG.scriptUrl || '';
 
 init();
 updateConnStatus();
+initDarkMode();
 </script>
+
+<button class="dark-toggle" id="dark-btn" onclick="toggleDarkMode()">🌙</button>
 
 </body>
 </html>
