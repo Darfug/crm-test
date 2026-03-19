@@ -778,24 +778,29 @@ function renderMapMarkers(){
     const usedCampusSet = new Set();
     f.forEach(c=>{
       const {campus, distance} = findNearestCampus(c.lat, c.lng, currentSchoolFilter);
-      usedCampusSet.add(campus.campus);
+      usedCampusSet.add(campus.zone + '|' + campus.ville);
       const m=L.marker([c.lat,c.lng],{icon:makeCampusIcon(campus.color)}).addTo(mapInstance).bindPopup(
-        buildPopup(c) + `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #eee;font-size:10px;color:#666"><strong style="color:${campus.color}">Campus le plus proche :</strong> ${campus.campus} (${distance} km)</div>`,
+        buildPopup(c) + `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #eee;font-size:10px;color:#666"><strong style="color:${campus.color}">Zone :</strong> ${campus.zone} — campus ${campus.ville} (${distance} km)</div>`,
         {maxWidth:260}
       );
       m.on('click',function(){this.openPopup();});
       mapMarkers.push(m);
     });
+    // Campus stars — dédupliqués par zone+ville
     let campusToShow = CAMPUS_DB;
     if (currentSchoolFilter && currentSchoolFilter !== 'all') {
       campusToShow = campusToShow.filter(c => c.ecole === currentSchoolFilter);
-    } else {
-      campusToShow = campusToShow.filter(c => usedCampusSet.has(c.campus));
     }
+    const shownLocations = new Set();
     campusToShow.forEach(campus => {
+      const locKey = campus.lat + ',' + campus.lng;
+      if (shownLocations.has(locKey)) return;
+      shownLocations.add(locKey);
+      // Trouver toutes les écoles à cet endroit
+      const ecolesHere = campusToShow.filter(c => c.lat === campus.lat && c.lng === campus.lng).map(c => SCHOOLS_CONFIG[c.ecole]?.name || c.ecole);
       const m = L.marker([campus.lat, campus.lng], {icon: makeCampusStarIcon(campus.color), zIndexOffset: 1000}).addTo(mapInstance).bindPopup(
-        `<div style="font-family:sans-serif;text-align:center"><div style="font-size:13px;font-weight:700;color:${campus.color}">${campus.campus}</div><div style="font-size:10px;color:#666">${campus.ville}</div></div>`,
-        {maxWidth:180}
+        `<div style="font-family:sans-serif;text-align:center"><div style="font-size:13px;font-weight:700;color:${campus.color}">${campus.ville}</div><div style="font-size:9px;color:#888;margin-top:2px">${campus.zone}</div><div style="font-size:10px;color:#444;margin-top:4px">${ecolesHere.join(', ')}</div></div>`,
+        {maxWidth:200}
       );
       campusMarkers.push(m);
     });
@@ -818,53 +823,55 @@ let campusMode = false;
 let campusMarkers = [];
 
 const CAMPUS_DB = [
-  // BRASSART
-  {ecole:'brassart',campus:'Brassart Paris',ville:'Paris',lat:48.8566,lng:2.3522,color:'#E63946'},
-  {ecole:'brassart',campus:'Brassart Bordeaux',ville:'Bordeaux',lat:44.8378,lng:-0.5792,color:'#E63946'},
-  {ecole:'brassart',campus:'Brassart Lyon',ville:'Lyon',lat:45.7640,lng:4.8357,color:'#E63946'},
-  {ecole:'brassart',campus:'Brassart Nantes',ville:'Nantes',lat:47.2184,lng:-1.5536,color:'#E63946'},
-  {ecole:'brassart',campus:'Brassart Toulouse',ville:'Toulouse',lat:43.6047,lng:1.4442,color:'#E63946'},
-  {ecole:'brassart',campus:'Brassart Aix-en-Provence',ville:'Aix-en-Provence',lat:43.5297,lng:5.4474,color:'#E63946'},
-  {ecole:'brassart',campus:'Brassart Grenoble',ville:'Grenoble',lat:45.1885,lng:5.7245,color:'#E63946'},
-  {ecole:'brassart',campus:'Brassart Strasbourg',ville:'Strasbourg',lat:48.5734,lng:7.7521,color:'#E63946'},
-  {ecole:'brassart',campus:'Brassart Lille',ville:'Lille',lat:50.6292,lng:3.0573,color:'#E63946'},
-  // EFAP
-  {ecole:'efap',campus:'EFAP Paris',ville:'Paris',lat:48.8738,lng:2.3285,color:'#457B9D'},
-  {ecole:'efap',campus:'EFAP Bordeaux',ville:'Bordeaux',lat:44.8378,lng:-0.5792,color:'#457B9D'},
-  {ecole:'efap',campus:'EFAP Lyon',ville:'Lyon',lat:45.7640,lng:4.8357,color:'#457B9D'},
-  {ecole:'efap',campus:'EFAP Lille',ville:'Lille',lat:50.6292,lng:3.0573,color:'#457B9D'},
-  // ICART
-  {ecole:'icart',campus:'ICART Paris',ville:'Paris',lat:48.8566,lng:2.3522,color:'#F4A261'},
-  {ecole:'icart',campus:'ICART Bordeaux',ville:'Bordeaux',lat:44.8378,lng:-0.5792,color:'#F4A261'},
-  {ecole:'icart',campus:'ICART Lyon',ville:'Lyon',lat:45.7640,lng:4.8357,color:'#F4A261'},
-  // CREAD
-  {ecole:'cread',campus:'CREAD Lyon',ville:'Lyon',lat:45.7640,lng:4.8357,color:'#2A9D8F'},
-  {ecole:'cread',campus:'CREAD Bordeaux',ville:'Bordeaux',lat:44.8378,lng:-0.5792,color:'#2A9D8F'},
-  // EFJ
-  {ecole:'efj',campus:'EFJ Paris',ville:'Paris',lat:48.8566,lng:2.3522,color:'#264653'},
-  {ecole:'efj',campus:'EFJ Bordeaux',ville:'Bordeaux',lat:44.8378,lng:-0.5792,color:'#264653'},
-  // MoPA
-  {ecole:'mopa',campus:'MoPA Arles',ville:'Arles',lat:43.6767,lng:4.6278,color:'#E76F51'},
-  // ÉSEC
-  {ecole:'esec',campus:'ÉSEC Paris',ville:'Paris',lat:48.8566,lng:2.3522,color:'#9B2226'},
-  // École Bleue
-  {ecole:'ecolebleue',campus:'École Bleue Paris',ville:'Paris',lat:48.8566,lng:2.3522,color:'#005F73'},
-  // 3W Academy
-  {ecole:'3wa',campus:'3WA Paris',ville:'Paris',lat:48.8566,lng:2.3522,color:'#94D2BD'},
-  {ecole:'3wa',campus:'3WA Lyon',ville:'Lyon',lat:45.7640,lng:4.8357,color:'#94D2BD'},
-  {ecole:'3wa',campus:'3WA Bordeaux',ville:'Bordeaux',lat:44.8378,lng:-0.5792,color:'#94D2BD'},
-  // IFA Paris
-  {ecole:'ifaparis',campus:'IFA Paris',ville:'Paris',lat:48.8566,lng:2.3522,color:'#BB3E79'},
-  // Gnomon
-  {ecole:'gnomon',campus:'Gnomon Hollywood',ville:'Hollywood',lat:34.0928,lng:-118.3287,color:'#6A0572'},
-  // Miami Ad School
-  {ecole:'miami',campus:'Miami Ad School',ville:'Miami',lat:25.7617,lng:-80.1918,color:'#FF6B6B'},
-  // CESINE
-  {ecole:'cesine',campus:'CESINE Santander',ville:'Santander',lat:43.4623,lng:-3.8100,color:'#4ECDC4'},
-  // CreaNAVARRA
-  {ecole:'creanavarra',campus:'CreaNAVARRA Pamplona',ville:'Pamplona',lat:42.8125,lng:-1.6458,color:'#45B7D1'},
-  // Artemis
-  {ecole:'artemis',campus:'Artemis Lyon',ville:'Lyon',lat:45.7640,lng:4.8357,color:'#DDA0DD'},
+  // ═══ ZONE ÎLE-DE-FRANCE — Jaune vif ═══
+  {ecole:'brassart',campus:'Brassart Paris',ville:'Paris',lat:48.8566,lng:2.3522,color:'#FFD600',zone:'Île-de-France'},
+  {ecole:'efap',campus:'EFAP Paris',ville:'Paris',lat:48.8738,lng:2.3285,color:'#FFD600',zone:'Île-de-France'},
+  {ecole:'icart',campus:'ICART Paris',ville:'Paris',lat:48.8566,lng:2.3522,color:'#FFD600',zone:'Île-de-France'},
+  {ecole:'efj',campus:'EFJ Paris',ville:'Paris',lat:48.8566,lng:2.3522,color:'#FFD600',zone:'Île-de-France'},
+  {ecole:'esec',campus:'ÉSEC Paris',ville:'Paris',lat:48.8566,lng:2.3522,color:'#FFD600',zone:'Île-de-France'},
+  {ecole:'ecolebleue',campus:'École Bleue Paris',ville:'Paris',lat:48.8566,lng:2.3522,color:'#FFD600',zone:'Île-de-France'},
+  {ecole:'3wa',campus:'3WA Paris',ville:'Paris',lat:48.8566,lng:2.3522,color:'#FFD600',zone:'Île-de-France'},
+  {ecole:'ifaparis',campus:'IFA Paris',ville:'Paris',lat:48.8566,lng:2.3522,color:'#FFD600',zone:'Île-de-France'},
+
+  // ═══ ZONE LILLE / HAUTS-DE-FRANCE — Bleu vif ═══
+  {ecole:'brassart',campus:'Brassart Lille',ville:'Lille',lat:50.6292,lng:3.0573,color:'#2979FF',zone:'Hauts-de-France'},
+  {ecole:'efap',campus:'EFAP Lille',ville:'Lille',lat:50.6292,lng:3.0573,color:'#2979FF',zone:'Hauts-de-France'},
+
+  // ═══ ZONE LYON / AUVERGNE-RHÔNE-ALPES — Rouge vif ═══
+  {ecole:'brassart',campus:'Brassart Lyon',ville:'Lyon',lat:45.7640,lng:4.8357,color:'#FF1744',zone:'Auvergne-Rhône-Alpes'},
+  {ecole:'efap',campus:'EFAP Lyon',ville:'Lyon',lat:45.7640,lng:4.8357,color:'#FF1744',zone:'Auvergne-Rhône-Alpes'},
+  {ecole:'icart',campus:'ICART Lyon',ville:'Lyon',lat:45.7640,lng:4.8357,color:'#FF1744',zone:'Auvergne-Rhône-Alpes'},
+  {ecole:'cread',campus:'CREAD Lyon',ville:'Lyon',lat:45.7640,lng:4.8357,color:'#FF1744',zone:'Auvergne-Rhône-Alpes'},
+  {ecole:'3wa',campus:'3WA Lyon',ville:'Lyon',lat:45.7640,lng:4.8357,color:'#FF1744',zone:'Auvergne-Rhône-Alpes'},
+  {ecole:'artemis',campus:'Artemis Lyon',ville:'Lyon',lat:45.7640,lng:4.8357,color:'#FF1744',zone:'Auvergne-Rhône-Alpes'},
+  {ecole:'brassart',campus:'Brassart Grenoble',ville:'Grenoble',lat:45.1885,lng:5.7245,color:'#FF1744',zone:'Auvergne-Rhône-Alpes'},
+
+  // ═══ ZONE BORDEAUX / NOUVELLE-AQUITAINE — Vert émeraude ═══
+  {ecole:'brassart',campus:'Brassart Bordeaux',ville:'Bordeaux',lat:44.8378,lng:-0.5792,color:'#00E676',zone:'Nouvelle-Aquitaine'},
+  {ecole:'efap',campus:'EFAP Bordeaux',ville:'Bordeaux',lat:44.8378,lng:-0.5792,color:'#00E676',zone:'Nouvelle-Aquitaine'},
+  {ecole:'icart',campus:'ICART Bordeaux',ville:'Bordeaux',lat:44.8378,lng:-0.5792,color:'#00E676',zone:'Nouvelle-Aquitaine'},
+  {ecole:'cread',campus:'CREAD Bordeaux',ville:'Bordeaux',lat:44.8378,lng:-0.5792,color:'#00E676',zone:'Nouvelle-Aquitaine'},
+  {ecole:'efj',campus:'EFJ Bordeaux',ville:'Bordeaux',lat:44.8378,lng:-0.5792,color:'#00E676',zone:'Nouvelle-Aquitaine'},
+  {ecole:'3wa',campus:'3WA Bordeaux',ville:'Bordeaux',lat:44.8378,lng:-0.5792,color:'#00E676',zone:'Nouvelle-Aquitaine'},
+
+  // ═══ ZONE NANTES / PAYS DE LA LOIRE — Violet vif ═══
+  {ecole:'brassart',campus:'Brassart Nantes',ville:'Nantes',lat:47.2184,lng:-1.5536,color:'#D500F9',zone:'Pays de la Loire'},
+
+  // ═══ ZONE TOULOUSE / OCCITANIE — Orange vif ═══
+  {ecole:'brassart',campus:'Brassart Toulouse',ville:'Toulouse',lat:43.6047,lng:1.4442,color:'#FF9100',zone:'Occitanie'},
+
+  // ═══ ZONE AIX-MARSEILLE / PACA — Turquoise ═══
+  {ecole:'brassart',campus:'Brassart Aix-en-Provence',ville:'Aix-en-Provence',lat:43.5297,lng:5.4474,color:'#00BCD4',zone:'PACA'},
+  {ecole:'mopa',campus:'MoPA Arles',ville:'Arles',lat:43.6767,lng:4.6278,color:'#00BCD4',zone:'PACA'},
+
+  // ═══ ZONE STRASBOURG / GRAND EST — Rose fuchsia ═══
+  {ecole:'brassart',campus:'Brassart Strasbourg',ville:'Strasbourg',lat:48.5734,lng:7.7521,color:'#F50057',zone:'Grand Est'},
+
+  // ═══ ZONE INTERNATIONAL ═══
+  {ecole:'gnomon',campus:'Gnomon Hollywood',ville:'Hollywood',lat:34.0928,lng:-118.3287,color:'#90A4AE',zone:'International'},
+  {ecole:'miami',campus:'Miami Ad School',ville:'Miami',lat:25.7617,lng:-80.1918,color:'#90A4AE',zone:'International'},
+  {ecole:'cesine',campus:'CESINE Santander',ville:'Santander',lat:43.4623,lng:-3.8100,color:'#90A4AE',zone:'International'},
+  {ecole:'creanavarra',campus:'CreaNAVARRA Pamplona',ville:'Pamplona',lat:42.8125,lng:-1.6458,color:'#90A4AE',zone:'International'},
 ];
 
 function haversineKm(lat1, lng1, lat2, lng2) {
@@ -876,16 +883,22 @@ function haversineKm(lat1, lng1, lat2, lng2) {
 }
 
 function findNearestCampus(lat, lng, schoolFilter) {
+  // Dédupliquer par zone (même ville/zone = même point)
+  const zoneMap = new Map();
   let candidates = CAMPUS_DB;
-  // Si on filtre par école, ne montrer que les campus de cette école
   if (schoolFilter && schoolFilter !== 'all') {
     candidates = candidates.filter(c => c.ecole === schoolFilter);
   }
   if (!candidates.length) candidates = CAMPUS_DB;
   
-  let nearest = candidates[0];
+  candidates.forEach(c => {
+    const key = c.zone + '|' + c.ville;
+    if (!zoneMap.has(key)) zoneMap.set(key, c);
+  });
+  
+  let nearest = [...zoneMap.values()][0];
   let minDist = Infinity;
-  candidates.forEach(campus => {
+  zoneMap.forEach(campus => {
     const d = haversineKm(lat, lng, campus.lat, campus.lng);
     if (d < minDist) { minDist = d; nearest = campus; }
   });
@@ -912,16 +925,16 @@ function updateMapLegend() {
     legendItems.innerHTML = `<div class="leg-item"><div class="leg-dot" style="background:#1D9E75"></div>Partenaire</div><div class="leg-item"><div class="leg-dot" style="background:#D85A30"></div>Chaud</div><div class="leg-item"><div class="leg-dot" style="background:#EF9F27"></div>Tiède</div><div class="leg-item"><div class="leg-dot" style="background:#378ADD"></div>Froid</div>`;
     return;
   }
-  // Trouver les campus visibles (ceux qui sont les plus proches d'au moins une entreprise)
+  // Légende par zone, dédupliquée
   const filtered = getFiltered().filter(c=>c.lat&&c.lng);
-  const usedCampus = new Map();
+  const usedZones = new Map();
   filtered.forEach(c => {
     const {campus} = findNearestCampus(c.lat, c.lng, currentSchoolFilter);
-    if (!usedCampus.has(campus.campus)) usedCampus.set(campus.campus, campus);
+    if (!usedZones.has(campus.zone)) usedZones.set(campus.zone, campus.color);
   });
-  legendItems.innerHTML = [...usedCampus.values()].map(c =>
-    `<div class="leg-item"><div class="leg-dot" style="background:${c.color}"></div>${c.campus}</div>`
-  ).join('') + `<div class="leg-item"><div class="leg-dot" style="background:#333;border-radius:0"></div>★ Campus</div>`;
+  legendItems.innerHTML = [...usedZones.entries()].map(([zone, color]) =>
+    `<div class="leg-item"><div class="leg-dot" style="background:${color}"></div>${zone}</div>`
+  ).join('') + `<div class="leg-item" style="margin-left:6px;border-left:1px solid var(--border);padding-left:8px"><div class="leg-dot" style="background:#333;border-radius:2px"></div>★ Campus</div>`;
 }
 
 /* ═══ NAV ═══ */
