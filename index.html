@@ -478,13 +478,24 @@ function resetFilters() {
   const ns = document.getElementById('flt-notes-search'); if (ns) ns.value = '';
   document.getElementById('flt-sort').value = 'nom-asc';
   document.querySelectorAll('.filter-preset').forEach(b => b.classList.remove('active'));
+  // Aussi réinitialiser les filtres sidebar (statut)
+  curStatus = null;
+  document.querySelectorAll('.nav-item[data-s]').forEach(el => el.classList.remove('active'));
   renderAll();
 }
 
 function applyPreset(preset) {
-  resetFilters();
+  // Reset all filters without triggering renderAll
+  ['flt-ville','flt-offre','flt-referent','flt-dernier','flt-siret','flt-contact','flt-echanges','flt-notes'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  const ns = document.getElementById('flt-notes-search'); if (ns) ns.value = '';
+  document.getElementById('flt-sort').value = 'nom-asc';
+  curStatus = null;
+  document.querySelectorAll('.nav-item[data-s]').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.filter-preset').forEach(b => b.classList.remove('active'));
   event.target.classList.add('active');
+  
   switch(preset) {
     case 'relance':
       document.getElementById('flt-echanges').value = '1+';
@@ -504,8 +515,8 @@ function applyPreset(preset) {
       document.getElementById('flt-siret').value = 'non';
       break;
   }
-  renderAll();
   document.getElementById('filter-bar').classList.add('open');
+  renderAll();
 }
 
 function updateResultsCount(count) {
@@ -520,6 +531,8 @@ function updateResultsCount(count) {
 
 function updateActiveFilters() {
   const tags = [];
+  // Statut sidebar
+  if (curStatus) tags.push({label:'Statut: '+(STATUSES[curStatus]?.label||curStatus), clear:()=>{curStatus=null;document.querySelectorAll('.nav-item[data-s]').forEach(el=>el.classList.remove('active'));applyFilters();}});
   const fv = document.getElementById('flt-ville')?.value; if (fv) tags.push({label:'Ville: '+fv, clear:()=>{document.getElementById('flt-ville').value='';applyFilters();}});
   const fo = document.getElementById('flt-offre')?.value; if (fo) tags.push({label:'Offre: '+fo, clear:()=>{document.getElementById('flt-offre').value='';applyFilters();}});
   const fr = document.getElementById('flt-referent')?.value; if (fr) tags.push({label:'Référent: '+fr, clear:()=>{document.getElementById('flt-referent').value='';applyFilters();}});
@@ -545,18 +558,39 @@ function clearFilterTag(i) {
 // Populate dynamic filter dropdowns from current data
 function populateFilterDropdowns() {
   const base = getBaseSet();
+  
+  // Sauvegarder les sélections actuelles
+  const saved = {};
+  ['flt-ville','flt-offre','flt-referent','flt-dernier'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) saved[id] = el.value;
+  });
+  
   // Villes
   const villes = [...new Set(base.map(c => c.ville).filter(Boolean))].sort();
-  document.getElementById('flt-ville').innerHTML = '<option value="">Toutes les villes</option>' + villes.map(v => `<option value="${v}">${v}</option>`).join('');
+  document.getElementById('flt-ville').innerHTML = '<option value="">Toutes les villes</option>' + villes.map(v => `<option value="${v}">${v} (${base.filter(c=>c.ville===v).length})</option>`).join('');
+  
   // Offres
   const offres = [...new Set(base.flatMap(c => (c.offre||'').split(',').map(s=>s.trim())).filter(Boolean))].sort();
   document.getElementById('flt-offre').innerHTML = '<option value="">Tous les types</option>' + offres.map(o => `<option value="${o}">${o}</option>`).join('');
+  
   // Référents
-  const refs = [...new Set(base.map(c => c.obtenu_par).filter(v => v && v !== '—'))].sort();
+  const refs = [...new Set(base.map(c => c.obtenu_par).filter(v => v && v !== '—' && v !== ''))].sort();
   document.getElementById('flt-referent').innerHTML = '<option value="">Tous</option>' + refs.map(r => `<option value="${r}">${r}</option>`).join('');
+  
   // Dernier échange
-  const derniers = [...new Set(base.map(c => c.dernier_echange).filter(v => v && v !== '—'))].sort();
+  const derniers = [...new Set(base.map(c => c.dernier_echange).filter(v => v && v !== '—' && v !== ''))].sort();
   document.getElementById('flt-dernier').innerHTML = '<option value="">Tous</option>' + derniers.map(d => `<option value="${d}">${d}</option>`).join('');
+  
+  // Restaurer les sélections
+  Object.entries(saved).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el && val) {
+      // Vérifier que l'option existe encore
+      const exists = [...el.options].some(o => o.value === val);
+      if (exists) el.value = val;
+    }
+  });
 }
 
 function renderAll() { populateFilterDropdowns(); renderStats(); renderTableHead(); renderTable(); if(curTab==='map')renderMapMarkers(); }
