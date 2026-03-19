@@ -32,7 +32,7 @@ body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;backgrou
 .nav-item.active{background:var(--bg-primary);color:var(--text-primary);border-left-color:var(--accent);font-weight:600}
 .nav-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .nav-count{margin-left:auto;font-size:10px;background:var(--bg-tertiary);padding:1px 6px;border-radius:10px;color:var(--text-secondary)}
-.status-section{margin-top:auto;padding:8px 0 0;border-top:0.5px solid var(--border)}
+.status-section{padding:8px 0 0;border-top:0.5px solid var(--border)}
 .sb-footer{padding:6px 12px;border-top:0.5px solid var(--border);margin-top:8px;display:flex;flex-direction:column;gap:4px}
 .sb-footer button{width:100%;padding:6px;border:0.5px solid var(--border-md);border-radius:var(--radius-md);font-size:11px;background:var(--bg-primary);cursor:pointer;color:var(--text-secondary);font-family:inherit;transition:all .12s;display:flex;align-items:center;justify-content:center;gap:5px}
 .sb-footer button:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
@@ -636,8 +636,8 @@ function renderTable() {
 
 /* ═══ MAP ═══ */
 function makeIcon(st){const c=STATUSES[st]?.color||'#999';return L.divIcon({html:`<svg xmlns='http://www.w3.org/2000/svg' width='24' height='32' viewBox='0 0 26 34'><path d='M13 0C5.82 0 0 5.82 0 13c0 9.75 13 21 13 21S26 22.75 26 13C26 5.82 20.18 0 13 0z' fill='${c}'/><circle cx='13' cy='13' r='5' fill='white' opacity='.9'/></svg>`,className:'',iconSize:[24,32],iconAnchor:[12,32],popupAnchor:[0,-34]});}
-function buildPopup(c){const fl=FL(),f=fl[c.filiere],s=STATUSES[c.statut];return `<div style="font-family:sans-serif;min-width:140px"><div style="font-size:12px;font-weight:700;margin-bottom:3px">${c.nom}</div><div style="font-size:10px;color:#666;margin-bottom:2px">${c.ville} — ${c.contact||''}</div><div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:3px">${(c.ecoles||[]).map(e=>`<span style="padding:1px 4px;border-radius:4px;font-size:8px;font-weight:700;background:#EEEDFE;color:#3C3489">${SCHOOLS_CONFIG[e]?.name||e}</span>`).join('')}</div><div style="display:flex;gap:3px">${f?`<span style="padding:1px 5px;border-radius:6px;font-size:9px;font-weight:700;background:${f.bg};color:${f.color}">${f.label}</span>`:''} ${s?`<span style="padding:1px 5px;border-radius:6px;font-size:9px;font-weight:700;background:${s.bg};color:${s.text}">${s.label}</span>`:''}</div></div>`;}
-function renderMapMarkers(){if(!mapInstance)return;mapMarkers.forEach(m=>mapInstance.removeLayer(m));mapMarkers=[];const f=getFiltered().filter(c=>c.lat&&c.lng);f.forEach(c=>{mapMarkers.push(L.marker([c.lat,c.lng],{icon:makeIcon(c.statut)}).addTo(mapInstance).bindPopup(buildPopup(c),{maxWidth:220}));});if(f.length)mapInstance.fitBounds(f.map(c=>[c.lat,c.lng]),{padding:[40,40],maxZoom:12});}
+function buildPopup(c){const fl=FL(),f=fl[c.filiere],s=STATUSES[c.statut];return `<div style="font-family:sans-serif;min-width:160px"><div style="font-size:13px;font-weight:700;margin-bottom:4px">${c.nom}</div><div style="font-size:10px;color:#666;margin-bottom:2px">${c.adresse?c.adresse+', ':''}${c.ville}</div><div style="font-size:10px;color:#666;margin-bottom:4px">${c.contact&&c.contact!=='—'?'Contact: '+c.contact:''}</div><div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:4px">${(c.ecoles||[]).map(e=>`<span style="padding:1px 4px;border-radius:4px;font-size:8px;font-weight:700;background:#EEEDFE;color:#3C3489">${SCHOOLS_CONFIG[e]?.name||e}</span>`).join('')}</div><div style="display:flex;gap:3px;margin-bottom:6px">${f?`<span style="padding:1px 5px;border-radius:6px;font-size:9px;font-weight:700;background:${f.bg};color:${f.color}">${f.label}</span>`:''} ${s?`<span style="padding:1px 5px;border-radius:6px;font-size:9px;font-weight:700;background:${s.bg};color:${s.text}">${s.label}</span>`:''}</div><button onclick="showDetail(${c.id})" style="width:100%;padding:5px 0;border:1px solid #7F77DD;border-radius:6px;background:#EEEDFE;color:#3C3489;font-size:11px;font-weight:600;cursor:pointer;font-family:sans-serif">Voir la fiche</button></div>`;}
+function renderMapMarkers(){if(!mapInstance)return;mapMarkers.forEach(m=>mapInstance.removeLayer(m));mapMarkers=[];const f=getFiltered().filter(c=>c.lat&&c.lng);f.forEach(c=>{const m=L.marker([c.lat,c.lng],{icon:makeIcon(c.statut)}).addTo(mapInstance).bindPopup(buildPopup(c),{maxWidth:240});m.on('click',function(){this.openPopup();});mapMarkers.push(m);});if(f.length)mapInstance.fitBounds(f.map(c=>[c.lat,c.lng]),{padding:[40,40],maxZoom:12});}
 function initMap(){if(mapInstance)return;mapInstance=L.map('map').setView([46.5,2.5],5);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:18}).addTo(mapInstance);renderMapMarkers();}
 
 /* ═══ NAV ═══ */
@@ -925,10 +925,14 @@ function addTeamMember(){
   const nom=document.getElementById('new-member-name').value.trim();
   const ecole=document.getElementById('new-member-school').value;
   const role=document.getElementById('new-member-role').value.trim();
+  const email=document.getElementById('new-member-email')?.value?.trim()||'';
   if(!nom) return;
-  TEAM_MEMBERS.push({nom, ecole, role: role||'Collaborateur'});
+  TEAM_MEMBERS.push({nom, ecole, role: role||'Collaborateur', email});
   document.getElementById('new-member-name').value='';
   document.getElementById('new-member-role').value='';
+  if(document.getElementById('new-member-email')) document.getElementById('new-member-email').value='';
+  // Écrire dans Google Sheets
+  if(CONFIG.mode==='gsheet') gsWrite('addEquipe', { row: [nom, ecole, role||'Collaborateur', email] });
   renderAdminTeam(); saveConfig();
 }
 
@@ -1124,19 +1128,19 @@ async function syncData() {
   <div class="sidebar">
     <div class="sb-logo"><span>Groupe EDH — CRM</span><small>Entreprises partenaires</small></div>
     <div class="school-selector"><select id="school-select" onchange="switchSchool(this.value)"></select></div>
-    <div class="nav-section">Filières</div>
-    <div id="filiere-nav"></div>
-    <div class="status-section">
+    <div class="sb-footer" style="margin-top:0;border-top:none;padding-bottom:6px">
+      <button onclick="syncData()">&#8635; Synchroniser</button>
+      <button onclick="openAdmin()">&#9881; Administration</button>
+    </div>
+    <div style="padding:0 0 6px;border-bottom:0.5px solid var(--border)">
       <div class="nav-section">Statut</div>
       <div class="nav-item" data-s="partenaire" onclick="setStatus('partenaire')"><span class="nav-dot" style="background:#1D9E75"></span>Partenaire</div>
       <div class="nav-item" data-s="chaud" onclick="setStatus('chaud')"><span class="nav-dot" style="background:#D85A30"></span>Chaud</div>
       <div class="nav-item" data-s="tiede" onclick="setStatus('tiede')"><span class="nav-dot" style="background:#EF9F27"></span>Tiède</div>
       <div class="nav-item" data-s="froid" onclick="setStatus('froid')"><span class="nav-dot" style="background:#378ADD"></span>Froid</div>
     </div>
-    <div class="sb-footer">
-      <button onclick="syncData()">&#8635; Synchroniser</button>
-      <button onclick="openAdmin()">&#9881; Administration</button>
-    </div>
+    <div class="nav-section">Filières</div>
+    <div id="filiere-nav" style="flex:1;overflow-y:auto"></div>
   </div>
   <div class="main">
     <div class="topbar">
