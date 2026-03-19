@@ -213,7 +213,8 @@ tr:hover td{background:var(--bg-secondary);cursor:pointer}
 .view-map{display:none;flex:1;flex-direction:column}.view-map.active{display:flex}
 .view-list{display:none;flex:1;flex-direction:column}.view-list.active{display:flex;flex-direction:column}
 #map{width:100%;flex:1;min-height:500px}
-.map-legend{display:flex;gap:10px;padding:6px 12px;border-top:0.5px solid var(--border);background:var(--bg-primary);flex-wrap:wrap}
+.map-legend{display:flex;gap:10px;padding:6px 12px;border-top:0.5px solid var(--border);background:var(--bg-primary);flex-wrap:wrap;align-items:center}
+#map-legend-items{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .leg-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text-secondary)}
 .leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 
@@ -764,8 +765,164 @@ function renderPagination(total, totalPages, pageSize) {
 /* ═══ MAP ═══ */
 function makeIcon(st){const c=STATUSES[st]?.color||'#999';return L.divIcon({html:`<svg xmlns='http://www.w3.org/2000/svg' width='24' height='32' viewBox='0 0 26 34'><path d='M13 0C5.82 0 0 5.82 0 13c0 9.75 13 21 13 21S26 22.75 26 13C26 5.82 20.18 0 13 0z' fill='${c}'/><circle cx='13' cy='13' r='5' fill='white' opacity='.9'/></svg>`,className:'',iconSize:[24,32],iconAnchor:[12,32],popupAnchor:[0,-34]});}
 function buildPopup(c){const fl=FL(),f=fl[c.filiere],s=STATUSES[c.statut];return `<div style="font-family:sans-serif;min-width:160px"><div style="font-size:13px;font-weight:700;margin-bottom:4px">${c.nom}</div><div style="font-size:10px;color:#666;margin-bottom:2px">${c.adresse?c.adresse+', ':''}${c.ville}</div><div style="font-size:10px;color:#666;margin-bottom:4px">${c.contact&&c.contact!=='—'?'Contact: '+c.contact:''}</div><div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:4px">${(c.ecoles||[]).map(e=>`<span style="padding:1px 4px;border-radius:4px;font-size:8px;font-weight:700;background:#EEEDFE;color:#3C3489">${SCHOOLS_CONFIG[e]?.name||e}</span>`).join('')}</div><div style="display:flex;gap:3px;margin-bottom:6px">${f?`<span style="padding:1px 5px;border-radius:6px;font-size:9px;font-weight:700;background:${f.bg};color:${f.color}">${f.label}</span>`:''} ${s?`<span style="padding:1px 5px;border-radius:6px;font-size:9px;font-weight:700;background:${s.bg};color:${s.text}">${s.label}</span>`:''}</div><button onclick="showDetail(${c.id})" style="width:100%;padding:5px 0;border:1px solid #7F77DD;border-radius:6px;background:#EEEDFE;color:#3C3489;font-size:11px;font-weight:600;cursor:pointer;font-family:sans-serif">Voir la fiche</button></div>`;}
-function renderMapMarkers(){if(!mapInstance)return;mapMarkers.forEach(m=>mapInstance.removeLayer(m));mapMarkers=[];const f=getFiltered().filter(c=>c.lat&&c.lng);f.forEach(c=>{const m=L.marker([c.lat,c.lng],{icon:makeIcon(c.statut)}).addTo(mapInstance).bindPopup(buildPopup(c),{maxWidth:240});m.on('click',function(){this.openPopup();});mapMarkers.push(m);});if(f.length)mapInstance.fitBounds(f.map(c=>[c.lat,c.lng]),{padding:[40,40],maxZoom:12});}
+function renderMapMarkers(){
+  if(!mapInstance) return;
+  mapMarkers.forEach(m=>mapInstance.removeLayer(m));
+  mapMarkers=[];
+  campusMarkers.forEach(m=>mapInstance.removeLayer(m));
+  campusMarkers=[];
+  
+  const f=getFiltered().filter(c=>c.lat&&c.lng);
+  
+  if (campusMode) {
+    const usedCampusSet = new Set();
+    f.forEach(c=>{
+      const {campus, distance} = findNearestCampus(c.lat, c.lng, currentSchoolFilter);
+      usedCampusSet.add(campus.campus);
+      const m=L.marker([c.lat,c.lng],{icon:makeCampusIcon(campus.color)}).addTo(mapInstance).bindPopup(
+        buildPopup(c) + `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #eee;font-size:10px;color:#666"><strong style="color:${campus.color}">Campus le plus proche :</strong> ${campus.campus} (${distance} km)</div>`,
+        {maxWidth:260}
+      );
+      m.on('click',function(){this.openPopup();});
+      mapMarkers.push(m);
+    });
+    let campusToShow = CAMPUS_DB;
+    if (currentSchoolFilter && currentSchoolFilter !== 'all') {
+      campusToShow = campusToShow.filter(c => c.ecole === currentSchoolFilter);
+    } else {
+      campusToShow = campusToShow.filter(c => usedCampusSet.has(c.campus));
+    }
+    campusToShow.forEach(campus => {
+      const m = L.marker([campus.lat, campus.lng], {icon: makeCampusStarIcon(campus.color), zIndexOffset: 1000}).addTo(mapInstance).bindPopup(
+        `<div style="font-family:sans-serif;text-align:center"><div style="font-size:13px;font-weight:700;color:${campus.color}">${campus.campus}</div><div style="font-size:10px;color:#666">${campus.ville}</div></div>`,
+        {maxWidth:180}
+      );
+      campusMarkers.push(m);
+    });
+    updateMapLegend();
+  } else {
+    f.forEach(c=>{
+      const m=L.marker([c.lat,c.lng],{icon:makeIcon(c.statut)}).addTo(mapInstance).bindPopup(buildPopup(c),{maxWidth:240});
+      m.on('click',function(){this.openPopup();});
+      mapMarkers.push(m);
+    });
+    updateMapLegend();
+  }
+  
+  if(f.length) mapInstance.fitBounds(f.map(c=>[c.lat,c.lng]),{padding:[40,40],maxZoom:12});
+}
 function initMap(){if(mapInstance)return;mapInstance=L.map('map').setView([46.5,2.5],5);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:18}).addTo(mapInstance);renderMapMarkers();}
+
+/* ═══ CAMPUS PROXIMITY ═══ */
+let campusMode = false;
+let campusMarkers = [];
+
+const CAMPUS_DB = [
+  // BRASSART
+  {ecole:'brassart',campus:'Brassart Paris',ville:'Paris',lat:48.8566,lng:2.3522,color:'#E63946'},
+  {ecole:'brassart',campus:'Brassart Bordeaux',ville:'Bordeaux',lat:44.8378,lng:-0.5792,color:'#E63946'},
+  {ecole:'brassart',campus:'Brassart Lyon',ville:'Lyon',lat:45.7640,lng:4.8357,color:'#E63946'},
+  {ecole:'brassart',campus:'Brassart Nantes',ville:'Nantes',lat:47.2184,lng:-1.5536,color:'#E63946'},
+  {ecole:'brassart',campus:'Brassart Toulouse',ville:'Toulouse',lat:43.6047,lng:1.4442,color:'#E63946'},
+  {ecole:'brassart',campus:'Brassart Aix-en-Provence',ville:'Aix-en-Provence',lat:43.5297,lng:5.4474,color:'#E63946'},
+  {ecole:'brassart',campus:'Brassart Grenoble',ville:'Grenoble',lat:45.1885,lng:5.7245,color:'#E63946'},
+  {ecole:'brassart',campus:'Brassart Strasbourg',ville:'Strasbourg',lat:48.5734,lng:7.7521,color:'#E63946'},
+  {ecole:'brassart',campus:'Brassart Lille',ville:'Lille',lat:50.6292,lng:3.0573,color:'#E63946'},
+  // EFAP
+  {ecole:'efap',campus:'EFAP Paris',ville:'Paris',lat:48.8738,lng:2.3285,color:'#457B9D'},
+  {ecole:'efap',campus:'EFAP Bordeaux',ville:'Bordeaux',lat:44.8378,lng:-0.5792,color:'#457B9D'},
+  {ecole:'efap',campus:'EFAP Lyon',ville:'Lyon',lat:45.7640,lng:4.8357,color:'#457B9D'},
+  {ecole:'efap',campus:'EFAP Lille',ville:'Lille',lat:50.6292,lng:3.0573,color:'#457B9D'},
+  // ICART
+  {ecole:'icart',campus:'ICART Paris',ville:'Paris',lat:48.8566,lng:2.3522,color:'#F4A261'},
+  {ecole:'icart',campus:'ICART Bordeaux',ville:'Bordeaux',lat:44.8378,lng:-0.5792,color:'#F4A261'},
+  {ecole:'icart',campus:'ICART Lyon',ville:'Lyon',lat:45.7640,lng:4.8357,color:'#F4A261'},
+  // CREAD
+  {ecole:'cread',campus:'CREAD Lyon',ville:'Lyon',lat:45.7640,lng:4.8357,color:'#2A9D8F'},
+  {ecole:'cread',campus:'CREAD Bordeaux',ville:'Bordeaux',lat:44.8378,lng:-0.5792,color:'#2A9D8F'},
+  // EFJ
+  {ecole:'efj',campus:'EFJ Paris',ville:'Paris',lat:48.8566,lng:2.3522,color:'#264653'},
+  {ecole:'efj',campus:'EFJ Bordeaux',ville:'Bordeaux',lat:44.8378,lng:-0.5792,color:'#264653'},
+  // MoPA
+  {ecole:'mopa',campus:'MoPA Arles',ville:'Arles',lat:43.6767,lng:4.6278,color:'#E76F51'},
+  // ÉSEC
+  {ecole:'esec',campus:'ÉSEC Paris',ville:'Paris',lat:48.8566,lng:2.3522,color:'#9B2226'},
+  // École Bleue
+  {ecole:'ecolebleue',campus:'École Bleue Paris',ville:'Paris',lat:48.8566,lng:2.3522,color:'#005F73'},
+  // 3W Academy
+  {ecole:'3wa',campus:'3WA Paris',ville:'Paris',lat:48.8566,lng:2.3522,color:'#94D2BD'},
+  {ecole:'3wa',campus:'3WA Lyon',ville:'Lyon',lat:45.7640,lng:4.8357,color:'#94D2BD'},
+  {ecole:'3wa',campus:'3WA Bordeaux',ville:'Bordeaux',lat:44.8378,lng:-0.5792,color:'#94D2BD'},
+  // IFA Paris
+  {ecole:'ifaparis',campus:'IFA Paris',ville:'Paris',lat:48.8566,lng:2.3522,color:'#BB3E79'},
+  // Gnomon
+  {ecole:'gnomon',campus:'Gnomon Hollywood',ville:'Hollywood',lat:34.0928,lng:-118.3287,color:'#6A0572'},
+  // Miami Ad School
+  {ecole:'miami',campus:'Miami Ad School',ville:'Miami',lat:25.7617,lng:-80.1918,color:'#FF6B6B'},
+  // CESINE
+  {ecole:'cesine',campus:'CESINE Santander',ville:'Santander',lat:43.4623,lng:-3.8100,color:'#4ECDC4'},
+  // CreaNAVARRA
+  {ecole:'creanavarra',campus:'CreaNAVARRA Pamplona',ville:'Pamplona',lat:42.8125,lng:-1.6458,color:'#45B7D1'},
+  // Artemis
+  {ecole:'artemis',campus:'Artemis Lyon',ville:'Lyon',lat:45.7640,lng:4.8357,color:'#DDA0DD'},
+];
+
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2-lat1)*Math.PI/180;
+  const dLng = (lng2-lng1)*Math.PI/180;
+  const a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function findNearestCampus(lat, lng, schoolFilter) {
+  let candidates = CAMPUS_DB;
+  // Si on filtre par école, ne montrer que les campus de cette école
+  if (schoolFilter && schoolFilter !== 'all') {
+    candidates = candidates.filter(c => c.ecole === schoolFilter);
+  }
+  if (!candidates.length) candidates = CAMPUS_DB;
+  
+  let nearest = candidates[0];
+  let minDist = Infinity;
+  candidates.forEach(campus => {
+    const d = haversineKm(lat, lng, campus.lat, campus.lng);
+    if (d < minDist) { minDist = d; nearest = campus; }
+  });
+  return { campus: nearest, distance: Math.round(minDist) };
+}
+
+function makeCampusIcon(color) {
+  return L.divIcon({html:`<svg xmlns='http://www.w3.org/2000/svg' width='24' height='32' viewBox='0 0 26 34'><path d='M13 0C5.82 0 0 5.82 0 13c0 9.75 13 21 13 21S26 22.75 26 13C26 5.82 20.18 0 13 0z' fill='${color}'/><circle cx='13' cy='13' r='5' fill='white' opacity='.9'/></svg>`,className:'',iconSize:[24,32],iconAnchor:[12,32],popupAnchor:[0,-34]});
+}
+
+function makeCampusStarIcon(color) {
+  return L.divIcon({html:`<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'><circle cx='14' cy='14' r='13' fill='${color}' stroke='white' stroke-width='2'/><text x='14' y='18' text-anchor='middle' font-size='14' fill='white' font-weight='bold'>★</text></svg>`,className:'',iconSize:[28,28],iconAnchor:[14,14],popupAnchor:[0,-16]});
+}
+
+function toggleCampusMode() {
+  campusMode = document.getElementById('campus-mode-toggle').checked;
+  renderMapMarkers();
+  updateMapLegend();
+}
+
+function updateMapLegend() {
+  const legendItems = document.getElementById('map-legend-items');
+  if (!campusMode) {
+    legendItems.innerHTML = `<div class="leg-item"><div class="leg-dot" style="background:#1D9E75"></div>Partenaire</div><div class="leg-item"><div class="leg-dot" style="background:#D85A30"></div>Chaud</div><div class="leg-item"><div class="leg-dot" style="background:#EF9F27"></div>Tiède</div><div class="leg-item"><div class="leg-dot" style="background:#378ADD"></div>Froid</div>`;
+    return;
+  }
+  // Trouver les campus visibles (ceux qui sont les plus proches d'au moins une entreprise)
+  const filtered = getFiltered().filter(c=>c.lat&&c.lng);
+  const usedCampus = new Map();
+  filtered.forEach(c => {
+    const {campus} = findNearestCampus(c.lat, c.lng, currentSchoolFilter);
+    if (!usedCampus.has(campus.campus)) usedCampus.set(campus.campus, campus);
+  });
+  legendItems.innerHTML = [...usedCampus.values()].map(c =>
+    `<div class="leg-item"><div class="leg-dot" style="background:${c.color}"></div>${c.campus}</div>`
+  ).join('') + `<div class="leg-item"><div class="leg-dot" style="background:#333;border-radius:0"></div>★ Campus</div>`;
+}
 
 /* ═══ NAV ═══ */
 function switchTab(tab){curTab=tab;['list','map','kanban','dashboard'].forEach(t=>{const el=document.getElementById('view-'+t);const btn=document.getElementById('tab-'+t);if(el)el.classList.toggle('active',t===tab);if(btn)btn.classList.toggle('active',t===tab);});if(tab==='map')setTimeout(()=>{initMap();mapInstance&&mapInstance.invalidateSize();renderMapMarkers();},50);if(tab==='kanban')renderKanban();if(tab==='dashboard')renderDashboard();}
@@ -1856,7 +2013,7 @@ function initDarkMode() {
 <div class="pagination" id="pagination"></div>
 <div class="page-size-sel" style="justify-content:flex-end;padding:0 0 8px"><span>Lignes par page :</span><select id="page-size" onchange="curPage=1;renderAll()"><option value="25">25</option><option value="50" selected>50</option><option value="100">100</option><option value="9999">Tout</option></select></div>
 </div></div>
-    <div class="view-map" id="view-map"><div id="map"></div><div class="map-legend"><div class="leg-item"><div class="leg-dot" style="background:#1D9E75"></div>Partenaire</div><div class="leg-item"><div class="leg-dot" style="background:#D85A30"></div>Chaud</div><div class="leg-item"><div class="leg-dot" style="background:#EF9F27"></div>Tiède</div><div class="leg-item"><div class="leg-dot" style="background:#378ADD"></div>Froid</div></div></div>
+    <div class="view-map" id="view-map"><div id="map"></div><div class="map-legend" id="map-legend"><div style="display:flex;align-items:center;gap:6px;margin-right:10px"><label style="font-size:10px;font-weight:600;color:var(--text-secondary);display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="campus-mode-toggle" onchange="toggleCampusMode()" style="cursor:pointer"> Mode Campus</label></div><div id="map-legend-items"><div class="leg-item"><div class="leg-dot" style="background:#1D9E75"></div>Partenaire</div><div class="leg-item"><div class="leg-dot" style="background:#D85A30"></div>Chaud</div><div class="leg-item"><div class="leg-dot" style="background:#EF9F27"></div>Tiède</div><div class="leg-item"><div class="leg-dot" style="background:#378ADD"></div>Froid</div></div></div></div>
     <div class="view-kanban" id="view-kanban"></div>
     <div class="view-dashboard" id="view-dashboard"></div>
   </div>
