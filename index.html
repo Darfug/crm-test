@@ -962,7 +962,7 @@ function showDetail(id) {
       ['Adresse',(c.adresse||c.ville)?`<a href="${mapsUrl}" target="_blank" style="color:#185FA5;text-decoration:none">${c.adresse?c.adresse+', ':''}${c.ville} &#8599;</a>`:'—'],
       ['Contact',c.contact&&c.contact!=='—'?c.contact:'—'],
       ['Email',c.email?`<a href="mailto:${c.email}" style="color:#185FA5">${c.email}</a>`:'—'],
-      ['Téléphone',c.tel&&c.tel!=='—'?`<a href="tel:${c.tel}" style="color:#185FA5">${c.tel}</a>`:'—'],
+      ['Téléphone',c.tel&&c.tel!=='—'?`<span style="display:flex;align-items:center;gap:8px"><a href="tel:${c.tel}" style="color:#185FA5">${c.tel}</a><a href="https://teams.microsoft.com/l/call/0/0?users=4:${(c.tel||'').replace(/\s/g,'')}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:#464EB8;color:#fff;border-radius:5px;font-size:9px;font-weight:600;text-decoration:none;transition:background .15s" onmouseover="this.style.background='#5B63D6'" onmouseout="this.style.background='#464EB8'"><svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M19.44 13c-.22 0-.45-.07-.67-.12a9.44 9.44 0 0 1-1.31-.39 2 2 0 0 0-2.48 1l-.22.45a12.18 12.18 0 0 1-2.66-2 12.18 12.18 0 0 1-2-2.66l.42-.28a2 2 0 0 0 1-2.48 10.33 10.33 0 0 1-.39-1.31c-.05-.22-.09-.45-.12-.67a2 2 0 0 0-2-1.73H7a2 2 0 0 0-2 2.3 17 17 0 0 0 14.68 14.68A2 2 0 0 0 22 17v-2a2 2 0 0 0-1.73-2h-.83z"/></svg>Appeler via Teams</a></span>`:'—'],
       ['Site web',c.web?`<a href="${c.web}" target="_blank" style="color:#185FA5;text-decoration:none">${c.web} &#8599;</a>`:'—'],
       ['Obtenu par',`<strong style="color:var(--accent)">${c.obtenu_par||'—'}</strong>`],
       ['Dern. échange',`<strong style="color:var(--accent)">${c.dernier_echange||'—'}</strong>`],
@@ -1313,72 +1313,160 @@ function renderDashboard() {
   const totalExchanges = base.reduce((s,c)=>s+(c.exchanges||[]).length,0);
   const avgExchanges = base.length ? (totalExchanges/base.length).toFixed(1) : 0;
   const withSiret = base.filter(c=>(c.siret||'').trim()).length;
-  const withContact = base.filter(c=>c.contact&&c.contact!=='—').length;
+  const withContact = base.filter(c=>c.contact&&c.contact!=='—'&&c.contact).length;
+  const withEmail = base.filter(c=>(c.email||'').includes('@')).length;
+  const withPhone = base.filter(c=>c.tel&&c.tel!=='—'&&c.tel).length;
+  const withNotes = base.filter(c=>(c.notes||'').trim()).length;
+  const withExchanges = base.filter(c=>(c.exchanges||[]).length>0).length;
+  const neverContacted = base.filter(c=>(c.exchanges||[]).length===0).length;
+  const uniqueVilles = [...new Set(base.map(c=>c.ville))].length;
   
   // By status
-  const byStatus = Object.entries(STATUSES).map(([k,v])=>({label:v.label,count:base.filter(c=>c.statut===k).length,color:colors[k]||v.color}));
+  const byStatus = Object.entries(STATUSES).map(([k,v])=>({key:k,label:v.label,count:base.filter(c=>c.statut===k).length,color:colors[k]||'#999'}));
   const maxStatus = Math.max(...byStatus.map(s=>s.count),1);
   
   // By school
-  const bySchool = Object.entries(SCHOOLS_CONFIG).map(([k,v])=>({label:v.name,count:base.filter(c=>(c.ecoles||[]).includes(k)).length})).filter(s=>s.count>0).sort((a,b)=>b.count-a.count).slice(0,12);
-  const maxSchool = Math.max(...bySchool.map(s=>s.count),1);
+  const bySchool = Object.entries(SCHOOLS_CONFIG).map(([k,v])=>{
+    const ents = base.filter(c=>(c.ecoles||[]).includes(k));
+    return {code:k,label:v.name,total:ents.length,partenaires:ents.filter(c=>c.statut==='partenaire').length,chauds:ents.filter(c=>c.statut==='chaud').length};
+  }).filter(s=>s.total>0).sort((a,b)=>b.total-a.total);
+  const maxSchool = Math.max(...bySchool.map(s=>s.total),1);
   
-  // By city (top 12)
+  // By city (top 15)
   const cityMap = {}; base.forEach(c=>{ if(c.ville) cityMap[c.ville]=(cityMap[c.ville]||0)+1; });
-  const byCity = Object.entries(cityMap).sort((a,b)=>b[1]-a[1]).slice(0,12);
+  const byCity = Object.entries(cityMap).sort((a,b)=>b[1]-a[1]).slice(0,15);
   const maxCity = Math.max(...byCity.map(c=>c[1]),1);
   
-  // By filiere (top 10)
+  // By filiere (top 12)
   const filMap = {}; base.forEach(c=>{ if(c.filiere){ const f=fl[c.filiere]; filMap[c.filiere]={label:f?.label||c.filiere,count:(filMap[c.filiere]?.count||0)+1,color:f?.color||'#999'}; }});
-  const byFil = Object.values(filMap).sort((a,b)=>b.count-a.count).slice(0,10);
+  const byFil = Object.values(filMap).sort((a,b)=>b.count-a.count).slice(0,12);
   const maxFil = Math.max(...byFil.map(f=>f.count),1);
   
   // By offre type
   const offreMap = {}; base.forEach(c=>{ (c.offre||'').split(',').forEach(o=>{ o=o.trim(); if(o) offreMap[o]=(offreMap[o]||0)+1; }); });
   const byOffre = Object.entries(offreMap).sort((a,b)=>b[1]-a[1]);
   const maxOffre = Math.max(...byOffre.map(o=>o[1]),1);
+  
+  // Top referents (obtenu par)
+  const refMap = {}; base.forEach(c=>{ const r=c.obtenu_par; if(r&&r!=='—'&&r) refMap[r]=(refMap[r]||0)+1; });
+  const byRef = Object.entries(refMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const maxRef = Math.max(...byRef.map(r=>r[1]),1);
+  
+  // Conversion funnel
+  const funnel = byStatus.map(s=>s.count);
+  const funnelTotal = Math.max(base.length,1);
+  
+  // Statut x École (cross-analysis)
+  const statusSchoolMatrix = bySchool.slice(0,8).map(school => {
+    const ents = base.filter(c=>(c.ecoles||[]).includes(school.code));
+    return {
+      label: school.label,
+      froid: ents.filter(c=>c.statut==='froid').length,
+      tiede: ents.filter(c=>c.statut==='tiede').length,
+      chaud: ents.filter(c=>c.statut==='chaud').length,
+      partenaire: ents.filter(c=>c.statut==='partenaire').length,
+      total: ents.length
+    };
+  });
+
+  const barRow = (label,val,max,color) => `<div class="bar-row"><span class="bar-label">${label}</span><div class="bar-track"><div class="bar-fill" style="width:${val/max*100}%;background:${color}"></div></div><span class="bar-val">${val}</span></div>`;
 
   el.innerHTML = `
-    <div class="dash-big-numbers">
+    <div class="dash-big-numbers" style="grid-template-columns:repeat(6,1fr)">
       <div class="dash-big"><div class="num">${base.length}</div><div class="lbl">Entreprises</div></div>
-      <div class="dash-big"><div class="num" style="color:#1D9E75">${byStatus.find(s=>s.label==='Partenaire')?.count||0}</div><div class="lbl">Partenaires</div></div>
+      <div class="dash-big"><div class="num" style="color:#1D9E75">${byStatus.find(s=>s.key==='partenaire')?.count||0}</div><div class="lbl">Partenaires</div></div>
+      <div class="dash-big"><div class="num" style="color:#D85A30">${byStatus.find(s=>s.key==='chaud')?.count||0}</div><div class="lbl">Chauds</div></div>
       <div class="dash-big"><div class="num">${totalExchanges}</div><div class="lbl">Échanges</div></div>
-      <div class="dash-big"><div class="num">${Math.round(withContact/Math.max(base.length,1)*100)}%</div><div class="lbl">Avec contact</div></div>
+      <div class="dash-big"><div class="num">${uniqueVilles}</div><div class="lbl">Villes</div></div>
+      <div class="dash-big"><div class="num">${neverContacted}</div><div class="lbl">Jamais contactés</div></div>
     </div>
+
     <div class="dash-grid">
+      <!-- Funnel de conversion -->
+      <div class="dash-card full">
+        <h4>&#9660; Funnel de conversion</h4>
+        <div style="display:flex;gap:4px;align-items:flex-end;height:60px;margin-bottom:8px">
+          ${byStatus.map(s=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;background:${s.color};border-radius:4px 4px 0 0;height:${Math.max(s.count/funnelTotal*100,5)}%" title="${s.count}"></div></div>`).join('')}
+        </div>
+        <div style="display:flex;gap:4px">
+          ${byStatus.map(s=>`<div style="flex:1;text-align:center"><div style="font-size:16px;font-weight:700;color:${s.color}">${s.count}</div><div style="font-size:9px;color:var(--text-secondary)">${s.label} (${Math.round(s.count/funnelTotal*100)}%)</div></div>`).join('')}
+        </div>
+      </div>
+
       <div class="dash-card">
         <h4>Répartition par statut</h4>
-        ${byStatus.map(s=>`<div class="bar-row"><span class="bar-label">${s.label}</span><div class="bar-track"><div class="bar-fill" style="width:${s.count/maxStatus*100}%;background:${s.color}"></div></div><span class="bar-val">${s.count}</span></div>`).join('')}
+        ${byStatus.map(s=>barRow(s.label,s.count,maxStatus,s.color)).join('')}
       </div>
       <div class="dash-card">
-        <h4>Top écoles (nb entreprises taguées)</h4>
-        ${bySchool.map(s=>`<div class="bar-row"><span class="bar-label">${s.label}</span><div class="bar-track"><div class="bar-fill" style="width:${s.count/maxSchool*100}%;background:var(--accent)"></div></div><span class="bar-val">${s.count}</span></div>`).join('')}
+        <h4>Top référents (obtenu par)</h4>
+        ${byRef.length ? byRef.map(([r,n])=>barRow(r,n,maxRef,'#7F77DD')).join('') : '<div style="font-size:11px;color:var(--text-tertiary);padding:8px 0">Aucun référent renseigné</div>'}
+      </div>
+
+      <div class="dash-card">
+        <h4>Entreprises par école</h4>
+        ${bySchool.map(s=>barRow(s.label,s.total,maxSchool,'var(--accent)')).join('')}
       </div>
       <div class="dash-card">
         <h4>Top villes</h4>
-        ${byCity.map(([v,n])=>`<div class="bar-row"><span class="bar-label">${v}</span><div class="bar-track"><div class="bar-fill" style="width:${n/maxCity*100}%;background:#378ADD"></div></div><span class="bar-val">${n}</span></div>`).join('')}
+        ${byCity.map(([v,n])=>barRow(v,n,maxCity,'#378ADD')).join('')}
       </div>
+
       <div class="dash-card">
         <h4>Répartition par filière</h4>
-        ${byFil.map(f=>`<div class="bar-row"><span class="bar-label">${f.label}</span><div class="bar-track"><div class="bar-fill" style="width:${f.count/maxFil*100}%;background:${f.color}"></div></div><span class="bar-val">${f.count}</span></div>`).join('')}
+        ${byFil.map(f=>barRow(f.label,f.count,maxFil,f.color)).join('')}
       </div>
-      <div class="dash-card full">
+      <div class="dash-card">
         <h4>Types de partenariat</h4>
-        <div style="display:flex;flex-wrap:wrap;gap:6px">
-        ${byOffre.map(([o,n])=>`<div style="background:var(--bg-secondary);border-radius:8px;padding:8px 14px;text-align:center;min-width:80px"><div style="font-size:18px;font-weight:700;color:var(--text-primary)">${n}</div><div style="font-size:10px;color:var(--text-secondary)">${o}</div></div>`).join('')}
+        ${byOffre.length ? byOffre.map(([o,n])=>barRow(o,n,maxOffre,'#185FA5')).join('') : '<div style="font-size:11px;color:var(--text-tertiary)">Aucun type renseigné</div>'}
+      </div>
+
+      <!-- Cross-analysis: Statut x École -->
+      <div class="dash-card full">
+        <h4>&#128202; Matrice Statut × École</h4>
+        <div style="overflow-x:auto">
+        <table style="width:100%;font-size:11px;border-collapse:collapse">
+          <thead><tr style="background:var(--bg-secondary)">
+            <th style="text-align:left;padding:6px 8px;font-weight:600">École</th>
+            <th style="text-align:center;padding:6px 8px;color:${colors.froid}">Froid</th>
+            <th style="text-align:center;padding:6px 8px;color:${colors.tiede}">Tiède</th>
+            <th style="text-align:center;padding:6px 8px;color:${colors.chaud}">Chaud</th>
+            <th style="text-align:center;padding:6px 8px;color:${colors.partenaire}">Partenaire</th>
+            <th style="text-align:center;padding:6px 8px;font-weight:700">Total</th>
+            <th style="text-align:center;padding:6px 8px">Taux conv.</th>
+          </tr></thead>
+          <tbody>${statusSchoolMatrix.map(row=>`<tr style="border-bottom:0.5px solid var(--border)">
+            <td style="padding:5px 8px;font-weight:600">${row.label}</td>
+            <td style="text-align:center;padding:5px">${row.froid}</td>
+            <td style="text-align:center;padding:5px">${row.tiede}</td>
+            <td style="text-align:center;padding:5px">${row.chaud}</td>
+            <td style="text-align:center;padding:5px;font-weight:700;color:#1D9E75">${row.partenaire}</td>
+            <td style="text-align:center;padding:5px;font-weight:700">${row.total}</td>
+            <td style="text-align:center;padding:5px"><span style="padding:2px 6px;border-radius:4px;font-size:9px;font-weight:700;background:${row.partenaire/Math.max(row.total,1)>=0.2?'#EAF3DE':'#FAEEDA'};color:${row.partenaire/Math.max(row.total,1)>=0.2?'#173404':'#412402'}">${Math.round(row.partenaire/Math.max(row.total,1)*100)}%</span></td>
+          </tr>`).join('')}</tbody>
+        </table>
         </div>
       </div>
+
       <div class="dash-card">
         <h4>Complétude des fiches</h4>
-        ${[['Avec SIRET',withSiret,base.length,'#1D9E75'],['Avec contact',withContact,base.length,'#378ADD'],['Avec échanges',base.filter(c=>(c.exchanges||[]).length>0).length,base.length,'#EF9F27'],['Avec notes',base.filter(c=>(c.notes||'').trim()).length,base.length,'#D85A30']].map(([label,n,total,color])=>`<div class="bar-row"><span class="bar-label">${label}</span><div class="bar-track"><div class="bar-fill" style="width:${n/Math.max(total,1)*100}%;background:${color}"></div></div><span class="bar-val">${n}/${total} (${Math.round(n/Math.max(total,1)*100)}%)</span></div>`).join('')}
+        ${[
+          ['SIRET renseigné',withSiret,base.length,'#1D9E75'],
+          ['Contact assigné',withContact,base.length,'#378ADD'],
+          ['Email renseigné',withEmail,base.length,'#7F77DD'],
+          ['Téléphone renseigné',withPhone,base.length,'#534AB7'],
+          ['Au moins 1 échange',withExchanges,base.length,'#EF9F27'],
+          ['Notes renseignées',withNotes,base.length,'#D85A30'],
+        ].map(([label,n,total,color])=>`<div class="bar-row"><span class="bar-label">${label}</span><div class="bar-track"><div class="bar-fill" style="width:${n/Math.max(total,1)*100}%;background:${color}"></div></div><span class="bar-val">${Math.round(n/Math.max(total,1)*100)}%</span></div>`).join('')}
       </div>
       <div class="dash-card">
-        <h4>Chiffres clés</h4>
+        <h4>Indicateurs de pilotage</h4>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div style="background:var(--bg-secondary);border-radius:6px;padding:8px;text-align:center"><div style="font-size:18px;font-weight:700">${[...new Set(base.map(c=>c.ville))].length}</div><div style="font-size:10px;color:var(--text-secondary)">Villes</div></div>
-          <div style="background:var(--bg-secondary);border-radius:6px;padding:8px;text-align:center"><div style="font-size:18px;font-weight:700">${avgExchanges}</div><div style="font-size:10px;color:var(--text-secondary)">Moy. échanges/ent.</div></div>
-          <div style="background:var(--bg-secondary);border-radius:6px;padding:8px;text-align:center"><div style="font-size:18px;font-weight:700">${TEAM_MEMBERS.length}</div><div style="font-size:10px;color:var(--text-secondary)">Membres équipe</div></div>
-          <div style="background:var(--bg-secondary);border-radius:6px;padding:8px;text-align:center"><div style="font-size:18px;font-weight:700">${Math.round(withSiret/Math.max(base.length,1)*100)}%</div><div style="font-size:10px;color:var(--text-secondary)">SIRET renseigné</div></div>
+          <div style="background:var(--bg-secondary);border-radius:6px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:700">${avgExchanges}</div><div style="font-size:10px;color:var(--text-secondary)">Moy. échanges / ent.</div></div>
+          <div style="background:var(--bg-secondary);border-radius:6px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:700">${TEAM_MEMBERS.length}</div><div style="font-size:10px;color:var(--text-secondary)">Membres équipe</div></div>
+          <div style="background:var(--bg-secondary);border-radius:6px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:700;color:#1D9E75">${Math.round((byStatus.find(s=>s.key==='partenaire')?.count||0)/funnelTotal*100)}%</div><div style="font-size:10px;color:var(--text-secondary)">Taux de conversion</div></div>
+          <div style="background:var(--bg-secondary);border-radius:6px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:700;color:#D85A30">${Math.round(neverContacted/funnelTotal*100)}%</div><div style="font-size:10px;color:var(--text-secondary)">Non contactés</div></div>
+          <div style="background:var(--bg-secondary);border-radius:6px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:700">${Math.round(withEmail/funnelTotal*100)}%</div><div style="font-size:10px;color:var(--text-secondary)">Joignables par email</div></div>
+          <div style="background:var(--bg-secondary);border-radius:6px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:700">${Object.keys(offreMap).length}</div><div style="font-size:10px;color:var(--text-secondary)">Types de partenariat</div></div>
         </div>
       </div>
     </div>
@@ -1639,7 +1727,7 @@ function initDarkMode() {
 <!-- LOGIN SCREEN -->
 <div class="login-screen" id="login-screen">
   <div class="login-box">
-    <div class="logo-edh">GROUPE EDH<small>CRM Multi-Écoles</small></div>
+    <div class="logo-edh"><img src="https://www.groupeedh.com/wp-content/themes/starter-starter/dist/images/logo.svg" alt="Groupe EDH" style="height:40px;margin-bottom:8px" onerror="this.style.display='none'"><br>GROUPE EDH<small>CRM Multi-Écoles</small></div>
     <h1>Connexion</h1>
     <p>Accédez à votre espace de gestion des entreprises partenaires</p>
     <div class="error" id="login-error"></div>
@@ -1667,7 +1755,7 @@ function initDarkMode() {
 <div class="app" id="app" style="position:relative;display:none">
   <!-- USER BANNER — Top bar EDH -->
   <div class="user-banner" id="user-banner">
-    <span class="edh-brand">GROUPE EDH<small>CRM Multi-Écoles</small></span>
+    <span class="edh-brand"><img src="https://www.groupeedh.com/wp-content/themes/starter-starter/dist/images/logo.svg" alt="EDH" style="height:20px;vertical-align:middle;margin-right:8px;filter:brightness(10)" onerror="this.style.display='none'">GROUPE EDH<small>CRM Multi-Écoles</small></span>
     <span class="spacer"></span>
     <div class="user-avatar" id="user-avatar">?</div>
     <span class="user-name" id="user-display-name">—</span>
