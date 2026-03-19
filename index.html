@@ -1,4 +1,17 @@
 <!DOCTYPE html>
+<!--
+  ╔══════════════════════════════════════════════════════════════════╗
+  ║  CRM Multi-Écoles — Groupe EDH                                  ║
+  ║  © 2026 Louis Descamps — Tous droits réservés                   ║
+  ║  Contact : louis.dscmps@gmail.com                                ║
+  ║                                                                  ║
+  ║  Ce code source est une œuvre protégée par le droit d'auteur.    ║
+  ║  Toute reproduction, modification ou distribution sans           ║
+  ║  autorisation écrite de l'auteur est strictement interdite.      ║
+  ║  Articles L.111-1 et L.335-2 du Code de la propriété            ║
+  ║  intellectuelle.                                                 ║
+  ╚══════════════════════════════════════════════════════════════════╝
+-->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -2210,6 +2223,71 @@ checkSavedSession();
 </script>
 
 <button class="dark-toggle" id="dark-btn" onclick="toggleDarkMode()">🌙</button>
+
+<!-- LEGAL FOOTER -->
+<div style="position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:100;display:flex;gap:12px;align-items:center">
+  <span style="font-size:9px;color:var(--text-tertiary)">© 2026 Louis Descamps — Tous droits réservés</span>
+  <a href="#" onclick="event.preventDefault();document.getElementById('legal-modal').classList.add('open')" style="font-size:9px;color:var(--text-tertiary);text-decoration:underline;cursor:pointer">Mentions légales</a>
+</div>
+
+<!-- LEGAL MODAL -->
+<div class="modal-bg" id="legal-modal">
+  <div class="modal" style="width:620px">
+    <div class="modal-header"><h3>Mentions légales</h3><button class="modal-close" onclick="closeModal('legal-modal')">×</button></div>
+    <div class="modal-body" style="font-size:12px;line-height:1.7;color:var(--text-secondary)">
+
+      <h4 style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:6px">1. Propriété intellectuelle</h4>
+      <p style="margin-bottom:14px">
+        Le présent logiciel CRM Multi-Écoles (ci-après « le Logiciel ») est une œuvre originale de l'esprit protégée par le droit d'auteur conformément aux articles L.111-1 et suivants du Code de la propriété intellectuelle.<br><br>
+        <strong style="color:var(--text-primary)">Auteur et titulaire des droits :</strong> Louis Descamps<br>
+        <strong style="color:var(--text-primary)">Contact :</strong> louis.dscmps@gmail.com<br>
+        <strong style="color:var(--text-primary)">Date de création :</strong> 2026<br><br>
+        L'ensemble du code source, de l'architecture, du design, des fonctionnalités et de la documentation associée constitue une œuvre protégée. Toute reproduction, modification, distribution, ou utilisation — totale ou partielle — sans l'autorisation écrite préalable de l'auteur est strictement interdite et constitue une contrefaçon sanctionnée par les articles L.335-2 et suivants du Code de la propriété intellectuelle.
+      </p>
+
+      <h4 style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:6px">2. Licence d'utilisation</h4>
+      <p style="margin-bottom:14px">
+        Ce Logiciel est fourni à titre de démonstration et de prototype. Aucune licence d'utilisation commerciale n'est accordée par défaut. Toute utilisation en dehors du cadre de démonstration doit faire l'objet d'un accord écrit avec l'auteur.<br><br>
+        Il est interdit de :<br>
+        — Copier, dupliquer ou cloner le code source à des fins commerciales<br>
+        — Revendre, sous-licencier ou distribuer le Logiciel<br>
+        — Supprimer ou modifier les mentions de propriété intellectuelle<br>
+        — Présenter le Logiciel comme étant l'œuvre d'un tiers
+      </p>
+
+      <h4 style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:6px">3. Données personnelles</h4>
+      <p style="margin-bottom:14px">
+        Les données saisies dans le CRM (entreprises, contacts, échanges) sont stockées dans Google Sheets et le navigateur de l'utilisateur (localStorage). Aucune donnée n'est transmise à des tiers. L'auteur du Logiciel n'est pas responsable des données saisies par les utilisateurs. Conformément au RGPD (Règlement Général sur la Protection des Données), toute personne peut exercer son droit d'accès, de rectification et de suppression en contactant : <a href="mailto:louis.dscmps@gmail.com" style="color:var(--accent)">louis.dscmps@gmail.com</a>
+      </p>
+
+      <h4 style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:6px">4. Hébergement</h4>
+      <p style="margin-bottom:14px">
+        Le Logiciel est hébergé sur GitHub Pages (GitHub, Inc. — 88 Colin P Kelly Jr Street, San Francisco, CA 94107, USA). La base de données est hébergée sur Google Sheets (Google LLC — 1600 Amphitheatre Parkway, Mountain View, CA 94043, USA).
+      </p>
+
+      <h4 style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:6px">5. Limitation de responsabilité</h4>
+      <p style="margin-bottom:14px">
+        Le Logiciel est fourni « en l'état », à titre de prototype et de démonstration. L'auteur ne garantit pas l'absence de bugs ou d'interruptions de service. L'auteur ne saurait être tenu responsable des dommages directs ou indirects résultant de l'utilisation du Logiciel.
+      </p>
+
+      <h4 style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:6px">6. Technologies tierces</h4>
+      <p style="margin-bottom:14px">
+        Le Logiciel utilise les technologies open source suivantes : Leaflet (cartographie, licence BSD-2), OpenStreetMap (données cartographiques, ODbL). Les logos d'entreprises sont chargés via le service Google Favicons. Ces technologies appartiennent à leurs auteurs respectifs.
+      </p>
+
+      <h4 style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:6px">7. Contact</h4>
+      <p style="margin-bottom:6px">
+        Pour toute question relative à ce Logiciel, ses conditions d'utilisation ou la propriété intellectuelle :<br><br>
+        <strong style="color:var(--text-primary)">Louis Descamps</strong><br>
+        <a href="mailto:louis.dscmps@gmail.com" style="color:var(--accent)">louis.dscmps@gmail.com</a>
+      </p>
+
+      <div style="margin-top:16px;padding-top:12px;border-top:0.5px solid var(--border);text-align:center;font-size:10px;color:var(--text-tertiary)">
+        © 2026 Louis Descamps — Tous droits réservés — CRM Multi-Écoles Groupe EDH v3
+      </div>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
