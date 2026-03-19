@@ -19,7 +19,8 @@ body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;backgrou
 }
 
 /* ─── LAYOUT ─── */
-.app{display:flex;border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background:var(--bg-primary);min-height:700px;max-width:1440px;margin:0 auto}
+.app{display:flex;flex-direction:column;border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background:var(--bg-primary);min-height:700px;max-width:1440px;margin:0 auto}
+.app-body{display:flex;flex:1;overflow:hidden}
 .sidebar{width:230px;background:var(--bg-secondary);border-right:0.5px solid var(--border);padding:14px 0;flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto}
 .sb-logo{padding:0 16px 12px;border-bottom:0.5px solid var(--border);margin-bottom:6px}
 .sb-logo span{font-size:14px;font-weight:700;color:var(--text-primary)}
@@ -147,16 +148,17 @@ body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;backgrou
 .page-size-sel select{padding:3px 6px;border:0.5px solid var(--border);border-radius:4px;font-size:11px;font-family:inherit;background:var(--bg-primary);color:var(--text-primary)}
 
 /* ─── LOGIN SCREEN ─── */
-.login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#f8f7ff 0%,#ebe9fc 50%,#ddd9f7 100%);z-index:9999;display:flex;align-items:center;justify-content:center}
+.login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0D0B2E 0%,#1B1464 40%,#2D2380 100%);z-index:9999;display:flex;align-items:center;justify-content:center}
 .login-screen.hidden{display:none}
-.login-box{background:#fff;border-radius:16px;padding:36px 32px;box-shadow:0 8px 40px rgba(127,119,221,0.12);width:360px;text-align:center}
-.login-box h1{font-size:20px;font-weight:700;color:#1a1a1a;margin-bottom:4px}
+.login-box{background:#fff;border-radius:16px;padding:36px 32px;box-shadow:0 12px 60px rgba(0,0,0,0.3);width:380px;text-align:center}
+.login-box h1{font-size:18px;font-weight:700;color:#1a1a1a;margin-bottom:4px}
 .login-box p{font-size:12px;color:#888;margin-bottom:24px}
-.login-box .logo-edh{font-size:28px;font-weight:800;color:#7F77DD;margin-bottom:16px;letter-spacing:-1px}
+.login-box .logo-edh{font-size:26px;font-weight:800;color:#1B1464;margin-bottom:4px;letter-spacing:-1px}
+.login-box .logo-edh small{display:block;font-size:11px;font-weight:400;color:#999;letter-spacing:1px;margin-top:2px}
 .login-box input{width:100%;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:13px;font-family:inherit;margin-bottom:10px;color:#1a1a1a;transition:border-color .15s}
-.login-box input:focus{outline:none;border-color:#7F77DD}
-.login-box button{width:100%;padding:11px;border:none;border-radius:8px;background:#7F77DD;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s}
-.login-box button:hover{background:#6d66c8}
+.login-box input:focus{outline:none;border-color:#1B1464}
+.login-box button.login-btn{width:100%;padding:11px;border:none;border-radius:8px;background:linear-gradient(135deg,#1B1464,#3C3489);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.login-box button.login-btn:hover{background:linear-gradient(135deg,#2D2380,#534AB7);box-shadow:0 4px 16px rgba(27,20,100,0.3)}
 .login-box .error{color:#E24B4A;font-size:11px;margin-bottom:8px;min-height:16px}
 .login-box .demo-accounts{margin-top:18px;border-top:1px solid #f0f0f0;padding-top:14px;text-align:left}
 .login-box .demo-accounts h4{font-size:11px;font-weight:600;color:#888;margin-bottom:8px}
@@ -166,16 +168,18 @@ body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;backgrou
 .login-box .demo-account span{font-size:11px;color:#444}
 
 /* ─── USER BANNER ─── */
-.user-banner{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--bg-secondary);border-bottom:0.5px solid var(--border);font-size:11px;color:var(--text-secondary)}
-.user-banner .user-avatar{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
-.user-banner .user-name{font-weight:600;color:var(--text-primary)}
+.user-banner{display:flex;align-items:center;gap:10px;padding:8px 16px;background:linear-gradient(135deg,#1B1464 0%,#2D2380 60%,#3C3489 100%);font-size:11px;color:rgba(255,255,255,0.7);border-bottom:none}
+.user-banner .edh-brand{font-size:14px;font-weight:800;color:#fff;letter-spacing:-0.5px;margin-right:4px}
+.user-banner .edh-brand small{font-size:10px;font-weight:400;color:rgba(255,255,255,0.5);margin-left:6px;letter-spacing:0}
+.user-banner .user-avatar{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,0.15);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;border:1.5px solid rgba(255,255,255,0.25)}
+.user-banner .user-name{font-weight:600;color:#fff}
 .user-banner .user-role{padding:2px 8px;border-radius:4px;font-size:9px;font-weight:700}
-.user-banner .role-admin{background:#EEEDFE;color:#3C3489}
-.user-banner .role-editeur{background:#E6F1FB;color:#185FA5}
-.user-banner .role-lecteur{background:#EAF3DE;color:#173404}
+.user-banner .role-admin{background:rgba(255,255,255,0.15);color:#E0DDFF}
+.user-banner .role-editeur{background:rgba(255,255,255,0.15);color:#B8D4FF}
+.user-banner .role-lecteur{background:rgba(255,255,255,0.15);color:#C8E6C9}
 .user-banner .spacer{flex:1}
-.user-banner .logout-btn{padding:3px 10px;border:0.5px solid var(--border);border-radius:6px;font-size:10px;cursor:pointer;background:var(--bg-primary);color:var(--text-secondary);font-family:inherit}
-.user-banner .logout-btn:hover{border-color:var(--red);color:var(--red)}
+.user-banner .logout-btn{padding:4px 12px;border:1px solid rgba(255,255,255,0.25);border-radius:6px;font-size:10px;cursor:pointer;background:transparent;color:rgba(255,255,255,0.7);font-family:inherit;transition:all .15s}
+.user-banner .logout-btn:hover{background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.5)}
 
 /* ─── DARK MODE ─── */
 .dark-toggle{position:fixed;bottom:14px;right:14px;width:36px;height:36px;border-radius:50%;background:var(--bg-primary);border:0.5px solid var(--border-md);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,0.12);transition:all .2s}
@@ -1635,43 +1639,45 @@ function initDarkMode() {
 <!-- LOGIN SCREEN -->
 <div class="login-screen" id="login-screen">
   <div class="login-box">
-    <div class="logo-edh">Groupe EDH</div>
-    <h1>CRM Multi-Écoles</h1>
-    <p>Connectez-vous pour accéder au CRM</p>
+    <div class="logo-edh">GROUPE EDH<small>CRM Multi-Écoles</small></div>
+    <h1>Connexion</h1>
+    <p>Accédez à votre espace de gestion des entreprises partenaires</p>
     <div class="error" id="login-error"></div>
     <input type="text" id="login-user" placeholder="Identifiant" onkeydown="if(event.key==='Enter')doLogin()">
     <input type="password" id="login-pass" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')doLogin()">
-    <button onclick="doLogin()">Se connecter</button>
+    <button class="login-btn" onclick="doLogin()">Se connecter</button>
     <div class="demo-accounts">
       <h4>Comptes de démonstration</h4>
       <div class="demo-account" onclick="quickLogin('admin','admin')">
-        <span class="role-badge" style="background:#EEEDFE;color:#3C3489">Admin</span>
-        <span>admin / admin</span>
+        <span class="role-badge" style="background:#EEEDFE;color:#1B1464">Admin</span>
+        <span>admin / admin — <em style="color:#999">Accès complet</em></span>
       </div>
       <div class="demo-account" onclick="quickLogin('editeur','editeur')">
         <span class="role-badge" style="background:#E6F1FB;color:#185FA5">Éditeur</span>
-        <span>editeur / editeur</span>
+        <span>editeur / editeur — <em style="color:#999">Ajout & modification</em></span>
       </div>
       <div class="demo-account" onclick="quickLogin('lecteur','lecteur')">
         <span class="role-badge" style="background:#EAF3DE;color:#173404">Lecteur</span>
-        <span>lecteur / lecteur</span>
+        <span>lecteur / lecteur — <em style="color:#999">Consultation seule</em></span>
       </div>
     </div>
   </div>
 </div>
 
 <div class="app" id="app" style="position:relative;display:none">
-  <!-- USER BANNER -->
+  <!-- USER BANNER — Top bar EDH -->
   <div class="user-banner" id="user-banner">
+    <span class="edh-brand">GROUPE EDH<small>CRM Multi-Écoles</small></span>
+    <span class="spacer"></span>
     <div class="user-avatar" id="user-avatar">?</div>
     <span class="user-name" id="user-display-name">—</span>
     <span class="user-role" id="user-role-badge">—</span>
-    <span class="spacer"></span>
-    <span id="user-school-info" style="font-size:10px"></span>
+    <span id="user-school-info" style="font-size:10px;color:rgba(255,255,255,0.5)"></span>
     <button class="logout-btn" onclick="doLogout()">Déconnexion</button>
   </div>
+  <div class="app-body">
   <div class="sidebar">
-    <div class="sb-logo"><span>Groupe EDH — CRM</span><small>Entreprises partenaires</small></div>
+    <div class="sb-logo"><span>Navigation</span><small>Filtres & accès rapide</small></div>
     <div class="school-selector"><select id="school-select" onchange="switchSchool(this.value)"></select></div>
     <div class="sb-footer" style="margin-top:0;border-top:none;padding-bottom:6px">
       <button onclick="syncData()">&#8635; Synchroniser</button>
@@ -1753,7 +1759,8 @@ function initDarkMode() {
     <div class="view-kanban" id="view-kanban"></div>
     <div class="view-dashboard" id="view-dashboard"></div>
   </div>
-</div>
+</div><!-- /app-body -->
+</div><!-- /app -->
 
 <!-- FORM MODAL -->
 <div class="modal-bg" id="form-modal">
